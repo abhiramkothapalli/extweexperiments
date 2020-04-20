@@ -4,6 +4,7 @@ sudo apt update
 sudo apt --assume-yes install python3-pip
 pip3 install Pyro4
 
+sudo apt-get --assume-yes install libgmp-dev
 make
 
 pyro4-ns -p $1 &

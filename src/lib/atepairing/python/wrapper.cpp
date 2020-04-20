@@ -601,7 +601,8 @@ static PyMethodDef Methods[] = {
     {"ec12eq",  ec12eq, METH_VARARGS, "TODO"},
     {"setup",  setup, METH_VARARGS, "Setup Curve Library."},
     {"get_order",  get_order, METH_VARARGS, "TODO"},
-    {"debug",  debug, METH_VARARGS, "TODO"}
+    {"debug",  debug, METH_VARARGS, "TODO"},
+    {NULL}
 };
 
 static struct PyModuleDef Module = {
