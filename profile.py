@@ -49,7 +49,7 @@ for n in range(0, M):
         i = 1
     j = n % N
     
-    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + str(bulletin) + ' ' + str(nsport)))
+    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + 'bulletin' + ' ' + str(nsport)))
 
 # Bulletin Execute Scripts
 bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh" + ' ' + str(nsport)))

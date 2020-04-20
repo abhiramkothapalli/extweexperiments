@@ -1,8 +1,10 @@
 sudo apt update
 sudo apt --assume-yes install python3-pip
-pip3 install Pyro4 
+pip3 install Pyro4
 
-Pyro4-ns -p $1 &
+make
+
+pyro4-ns -p $1 &
 
 # Wait for nodes to start
 # sleep 20
