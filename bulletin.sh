@@ -1,3 +1,5 @@
+sudo apt update
+sudo apt --assume-yes install python3-pip
 pip3 install Pyro4 
 
 Pyro4-ns -p $1 &
