@@ -3,7 +3,9 @@ cd /local/repository
 sudo apt update
 sudo apt --assume-yes install python3-pip
 pip3 install Pyro4
+pip3 install numpy
 
+sudo apt-get --assume-yes install libgmp-dev
 make
 
 # Wait for ns to start

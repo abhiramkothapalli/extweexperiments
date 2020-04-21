@@ -51,13 +51,13 @@ get_order(PyObject *self, PyObject *args)
 template<class T, class S>
 void verify(const char *msg, const T& a, const S& b)
 {
-	if (a == b) {
-		printf("%s : ok\n", msg);
-	} else {
-		printf("%s : ng\n", msg);
-		PUT(a);
-		PUT(b);
-	}
+  if (a == b) {
+    printf("%s : ok\n", msg);
+  } else {
+    printf("%s : ng\n", msg);
+    PUT(a);
+    PUT(b);
+  }
 }
 
 // Conversions
@@ -308,9 +308,9 @@ _fbop(PyObject *args, char s)
       break;
     }
 
-  const char *cStr = c.toString().c_str();
+  //std::cout << c << std::endl;
 
-  return PyUnicode_FromString(cStr);
+  return PyUnicode_FromString(c.toString().c_str());
 
 }
 
@@ -337,9 +337,7 @@ _fuop(PyObject *args, char s)
       break;
     }
 
-  const char *bStr = b.toString().c_str();
-
-  return PyUnicode_FromString(bStr);
+  return PyUnicode_FromString(b.toString().c_str());
 
 }
 
@@ -575,64 +573,63 @@ static PyObject * inv(PyObject *self, PyObject *args){return _fuop(args, 'i');}
 static PyObject *
 debug(PyObject *self, PyObject *args)
 {
-
   return Py_None;
 }
 
 static PyMethodDef Methods[] = {
-    {"add",  add, METH_VARARGS, "Field Add."},
-    {"sub",  sub, METH_VARARGS, "Field Sub."},
-    {"mul",  mul, METH_VARARGS, "Field Mul."},
-    {"div",  div, METH_VARARGS, "Field Div."},
-    {"neg",  neg, METH_VARARGS, "Field Additive Inverse."},
-    {"inv",  inv, METH_VARARGS, "Field Multiplicative Inverse."},
-    {"get_g1",  get_g1, METH_VARARGS, "TODO"},
-    {"ec1smul",  ec1smul, METH_VARARGS, "TODO"},
-    {"ec1add",  ec1add, METH_VARARGS, "TODO"},
-    {"ec1sub",  ec1sub, METH_VARARGS, "TODO"},
-    {"ec1eq",  ec1eq, METH_VARARGS, "TODO"},
-    {"get_g2",  get_g2, METH_VARARGS, "TODO"},
-    {"ec2smul",  ec2smul, METH_VARARGS, "TODO"},
-    {"ec2add",  ec2add, METH_VARARGS, "TODO"},
-    {"ec2sub",  ec2sub, METH_VARARGS, "TODO"},
-    {"ec2eq",  ec2eq, METH_VARARGS, "TODO"},
-    {"pairing",  pairing, METH_VARARGS, "TODO"},
-    {"ec12mul",  ec12mul, METH_VARARGS, "TODO"},
-    {"ec12eq",  ec12eq, METH_VARARGS, "TODO"},
-    {"setup",  setup, METH_VARARGS, "Setup Curve Library."},
-    {"get_order",  get_order, METH_VARARGS, "TODO"},
-    {"debug",  debug, METH_VARARGS, "TODO"},
-    {NULL}
+  {"add",  add, METH_VARARGS, "Field Add."},
+  {"sub",  sub, METH_VARARGS, "Field Sub."},
+  {"mul",  mul, METH_VARARGS, "Field Mul."},
+  {"div",  div, METH_VARARGS, "Field Div."},
+  {"neg",  neg, METH_VARARGS, "Field Additive Inverse."},
+  {"inv",  inv, METH_VARARGS, "Field Multiplicative Inverse."},
+  {"get_g1",  get_g1, METH_VARARGS, "TODO"},
+  {"ec1smul",  ec1smul, METH_VARARGS, "TODO"},
+  {"ec1add",  ec1add, METH_VARARGS, "TODO"},
+  {"ec1sub",  ec1sub, METH_VARARGS, "TODO"},
+  {"ec1eq",  ec1eq, METH_VARARGS, "TODO"},
+  {"get_g2",  get_g2, METH_VARARGS, "TODO"},
+  {"ec2smul",  ec2smul, METH_VARARGS, "TODO"},
+  {"ec2add",  ec2add, METH_VARARGS, "TODO"},
+  {"ec2sub",  ec2sub, METH_VARARGS, "TODO"},
+  {"ec2eq",  ec2eq, METH_VARARGS, "TODO"},
+  {"pairing",  pairing, METH_VARARGS, "TODO"},
+  {"ec12mul",  ec12mul, METH_VARARGS, "TODO"},
+  {"ec12eq",  ec12eq, METH_VARARGS, "TODO"},
+  {"setup",  setup, METH_VARARGS, "Setup Curve Library."},
+  {"get_order",  get_order, METH_VARARGS, "TODO"},
+  {"debug",  debug, METH_VARARGS, "TODO"},
+  {NULL}
 };
 
 static struct PyModuleDef Module = {
-    PyModuleDef_HEAD_INIT,
-    "wrapper",
-    NULL,
-    -1,  
-    Methods
+  PyModuleDef_HEAD_INIT,
+  "wrapper",
+  NULL,
+  -1,  
+  Methods
 };
 
 PyMODINIT_FUNC
 PyInit_wrapper(void)
 {
-    return PyModule_Create(&Module);
+  return PyModule_Create(&Module);
 }
 
 int
 main(int argc, char *argv[])
 {
-    wchar_t *program = Py_DecodeLocale(argv[0], NULL);
-    if (program == NULL) {
-        fprintf(stderr, "Fatal error: cannot decode argv[0]\n");
-        exit(1);
-    }
+  wchar_t *program = Py_DecodeLocale(argv[0], NULL);
+  if (program == NULL) {
+    fprintf(stderr, "Fatal error: cannot decode argv[0]\n");
+    exit(1);
+  }
 
-    PyImport_AppendInittab("wrapper", PyInit_wrapper);
-    Py_SetProgramName(program);
-    Py_Initialize();
-    PyImport_ImportModule("wrapper");
+  PyImport_AppendInittab("wrapper", PyInit_wrapper);
+  Py_SetProgramName(program);
+  Py_Initialize();
+  PyImport_ImportModule("wrapper");
 
-    PyMem_RawFree(program);
-    return 0;
+  PyMem_RawFree(program);
+  return 0;
 }
