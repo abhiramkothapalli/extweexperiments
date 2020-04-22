@@ -4,16 +4,16 @@ echo "Installing Required Packages..."
 
 echo "Installing pip"
 sudo apt update
-#sudo apt --assume-yes install python3-pip
+sudo apt --assume-yes install python3-pip
 
 echo "Installing gmp"
 sudo apt-get --assume-yes install libgmp-dev
 
 echo "Installing Python packages"
-python3 -m pip install Pyro4 numpy
+sudo python3 -m pip install Pyro4 numpy
 
 echo "Building"
-make
+sudo make
 
 echo "Starting Nameserver"
 pyro4-ns -n $1 -p $2
