@@ -45,16 +45,17 @@ for n in range(0, M):
     node = nodes[n]
 
     output = "/local/repository/startup_output.txt"
+    nshost = 'bulletin'
 
     i = 0
     if n >= N:
         i = 1
     j = n % N
     
-    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + 'bulletin' + ' ' + str(nsport) + '>> ' + output))
+    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + nshost + ' ' + str(nsport) + '>> ' + output))
 
 # Bulletin Execute Scripts
-bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh" + ' ' + str(nsport) + '>> ' + output))
+bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh" +  ' ' + nshost + ' ' + str(nsport) + '>> ' + output))
 
 ''' Print Resulting RSpec '''
 
