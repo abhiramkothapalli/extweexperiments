@@ -25,7 +25,7 @@ class Wrapper():
         ns = Pyro4.locateNS(host='bulletin', port=9090) 
         uri = ns.lookup(str(i) + str(j))
         node = Pyro4.Proxy(uri)
-        return Pyro4.Proxy("PYRONAME:" + str(i) + str(j))
+        return node
 
 
     def wrap(self, m):
