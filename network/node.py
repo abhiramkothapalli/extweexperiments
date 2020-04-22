@@ -438,12 +438,13 @@ if __name__ == '__main__':
     NSPORT = int(sys.argv[4])
     
     u = (int(i), int(j))
+    v = 2 * i + j
 
     # Create Node Object
     node = Node(u)
 
     # Register to Nameserver
-    daemon = Pyro4.Daemon()
+    daemon = Pyro4.Daemon('node' + str(v) + '-0')
     ns = Pyro4.locateNS(host=NSHOST, port=NSPORT) 
     uri = daemon.register(node)
     ns.register(str(i) + str(j), uri)
