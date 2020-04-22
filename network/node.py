@@ -438,7 +438,7 @@ if __name__ == '__main__':
     NSPORT = int(sys.argv[4])
     
     u = (int(i), int(j))
-    v = 2 * i + j
+    v = 2 * int(i) + int(j)
 
     # Create Node Object
     node = Node(u)

@@ -21,6 +21,10 @@ class Wrapper():
 
     def get_node(self, u):
         i, j = u
+        # TODO: This is hardcoded
+        ns = Pyro4.locateNS(host='bulletin', port=9090) 
+        uri = ns.lookup(str(i) + str(j))
+        node = Pyro4.Proxy(uri)
         return Pyro4.Proxy("PYRONAME:" + str(i) + str(j))
 
 
