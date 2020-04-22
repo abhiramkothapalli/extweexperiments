@@ -27,13 +27,16 @@ bulletin = request.XenVM('bulletin')
 ''' Networking '''
 
 # Link all nodes to each other
-for n in range(0, M):
-    for m in range(n + 1, M):
-        request.Link(members=[nodes[n], nodes[m]])
+# for n in range(0, M):
+#     for m in range(n + 1, M):
+#         request.Link(members=[nodes[n], nodes[m]])
 
-for n in range(0, M):
-    request.Link(members=[nodes[n], bulletin])
+# for n in range(0, M):
+#     request.Link(members=[nodes[n], bulletin])
 
+request.Link(members=(nodes + [bulletin]))
+
+    
 nsport = 9090
 
 
@@ -52,7 +55,7 @@ for n in range(0, M):
         i = 1
     j = n % N
     
-    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + (nshost + '-0') + ' ' + str(nsport) + '>> ' + output))
+    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + nshost + ' ' + str(nsport) + '>> ' + output))
 
 # Bulletin Execute Scripts
 bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh" +  ' ' + nshost + ' ' + str(nsport) + '>> ' + output))

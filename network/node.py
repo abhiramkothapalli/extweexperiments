@@ -444,7 +444,7 @@ if __name__ == '__main__':
     node = Node(u)
 
     # Register to Nameserver
-    daemon = Pyro4.Daemon('node' + str(v) + '-0')
+    daemon = Pyro4.Daemon('node' + str(v))
     ns = Pyro4.locateNS(host=NSHOST, port=NSPORT) 
     uri = daemon.register(node)
     ns.register(str(i) + str(j), uri)
