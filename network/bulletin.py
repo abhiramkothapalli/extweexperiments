@@ -32,49 +32,25 @@ def generate_setup_randomness(nodes, new_nodes):
 
     ''' Setup Randomness Distribution and Verification '''
 
-    for n in nodes:
-        n.generate_setup_randomness()
+    results = [n.generate_setup_randomness() for n in nodes]
+    [r.value for r in results]
 
 def generate_refresh_randomness(nodes, new_nodes):
 
     ''' Refresh Randomness Distribution and Verification '''
 
-
-    results_distribution = [n.distribution() for n in new_nodes]
-    [r.value for r in results_distribution]
-
-
-    results_old_verification_1 = [n.old_distribution_verification_1() for n in nodes]
-    results_new_verification_1 = [n.new_distribution_verification_1() for n in new_nodes]
-
-    [r.value for r in results_old_verification_1]
-    [r.value for r in results_new_verification_1]
-
-
-    results_old_verification_2 = [n.distribution_verification_2() for n in nodes]
-    results_new_verification_2 = [n.distribution_verification_2() for n in new_nodes]
-    results_old_output = [n.old_output() for n in nodes]
-    results_new_output = [n.new_output() for n in new_nodes]
-
-    [r.value for r in results_old_verification_2]
-    [r.value for r in results_new_verification_2]
-    [r.value for r in results_old_output]
-    [r.value for r in results_new_output]
+    results = [n.generate_refresh_randomness() for n in nodes + new_nodes]
+    [r.value for r in results]
 
 
 def refresh(nodes, new_nodes):
 
     ''' Refresh '''
 
-    king = nodes[0]
-    king.refresh_reconstruct().value
-
     results = [n.refresh() for n in new_nodes]
-
     [r.wait() for r in results]
 
-
-def run_experiment(n, t, pk):
+def get_nodes(n, pk):
 
     nodes = [Pyro4.Proxy("PYRONAME:" + str(0) + str(i)) for i in range(n)]
     new_nodes = [Pyro4.Proxy("PYRONAME:" + str(1) + str(i)) for i in range(n)]
@@ -89,18 +65,25 @@ def run_experiment(n, t, pk):
         node.flush()
         node.set_params(wrap((n, pk)))
 
-    ''' Setup '''
-
-    generate_setup_randomness(nodes, new_nodes) # TODO: Not Async
-
     # Make all nodes async
     for node in nodes:
         node._pyroAsync()
     for node in new_nodes:
         node._pyroAsync()
 
-    generate_refresh_randomness(nodes, new_nodes)
+    return nodes, new_nodes
 
+
+
+
+def run_experiment(n, t, pk):
+
+    nodes, new_nodes = get_nodes(n, pk)
+
+    ''' Setup '''
+
+    generate_setup_randomness(nodes, new_nodes)
+    generate_refresh_randomness(nodes, new_nodes)
 
     ''' Share '''
 

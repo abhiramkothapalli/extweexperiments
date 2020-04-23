@@ -25,27 +25,27 @@ class Node(Wrapper):
         def wrapper(*args, **kwargs):
 
 
-
             key = func.__name__
+
+            if key not in args[0].locks:
+                args[0].locks[key] = Lock()
+
+            args[0].locks[key].acquire()
 
             # If function is called for the first time compute
             # and cache the result
             if key not in args[0].cached:
                 res = func(*args, **kwargs)
-                #args[0].lock.acquire()
                 args[0].cached[key] = res
-                #args[0].lock.release()
-
 
             # Otherwise if node is calling for the first time
             # Pop element in the list and provide to node
             node = Pyro4.current_context.client.sock.getpeername()
             if node not in args[0].distributed:
-                #args[0].lock.acquire()
-                res = args[0].cached[key].pop(0)
-                #args[0].lock.release()
-                
+                res = args[0].cached[key][int(args[1][0])][int(args[1][1])]
                 args[0].distributed[node] = res
+
+            args[0].locks[key].release()
                 
             
             return args[0].distributed[node]
@@ -61,11 +61,16 @@ class Node(Wrapper):
         def wrapper(*args, **kwargs):
             key = func.__name__
 
+            if key not in args[0].locks:
+                args[0].locks[key] = Lock()
+
+            args[0].locks[key].acquire()
+            
             if key not in args[0].cached:
-                #args[0].lock.acquire()
                 res = func(*args, **kwargs)
                 args[0].cached[key] = res
-                #args[0].lock.release()
+
+            args[0].locks[key].release()
 
 
                 
@@ -74,18 +79,11 @@ class Node(Wrapper):
         return wrapper
 
 
-    def get_old_nodes(self):
-        return [self.get_node((0, j)) for j in range(self.n)]
-
-    def get_new_nodes(self):
-        return [self.get_node((1, j)) for j in range(self.n)]
 
     def __init__(self, u):
 
         self.u = u
-
         self.blacklist = []
-        self.lock = Lock()
 
         # Secret Share
         self.share = None
@@ -102,6 +100,7 @@ class Node(Wrapper):
 
         self.cached = {}
         self.distributed = {}
+        self.locks = {}
 
     def set_params(self, params):
 
@@ -129,41 +128,20 @@ class Node(Wrapper):
 
         self.cached = {}
         self.distributed = {}
-
-        super().flush()
-
-    # TODO: Remove these methods
-    def listread(self, num, i):
-
-        L = []
-        for t in range(num):
-            l = []
-            for j in range(self.n):
-                if (i, j) in self.blacklist:
-                    continue
-                l += [self.read((i, j))]
-            L += [l]
-
-        return L
-
-    def dispense(self, M, i):
-        for j in range(self.n):
-            self.send((i, j), M[j])
-
+        self.locks = {}
 
 
     ''' Create Randomness Key '''
 
     @distribute
-    def setup_distribution(self):
+    def setup_distribution(self, u):
         
         ss, C = dpss.setup_dist(self.pk)
         gss, gC = dpss.setup_dist(self.pk)
 
-        shares = [self.wrap((ss[i], C, gss[i], gC))  for i in range(self.n)]
+        shares = [self.wrap((ss[i], C, gss[i], gC)) for i in range(self.n)]
 
-
-        return shares
+        return [shares]
 
 
     @cache
@@ -172,14 +150,16 @@ class Node(Wrapper):
         c = 10 # TODO: test this correctly
 
         nodes = self.get_old_nodes()
+
+        future_results = [n.setup_distribution(u) for n in nodes]
         
         ss = []
         coms = []
         gss = []
         gcoms = []
 
-        for node in nodes:
-            s, C, gs, gC = self.unwrap(node.setup_distribution())
+        for res in future_results:
+            s, C, gs, gC = self.unwrap(res.value)
             ss += [s]
             coms += [C]
             gss += [gs]
@@ -198,7 +178,11 @@ class Node(Wrapper):
     def generate_setup_randomness(self):
 
         nodes = self.get_old_nodes()
-        nss = [self.unwrap(node.setup_distribution_verification()) for node in nodes]
+        
+        future_nss = [n.setup_distribution_verification() for n in nodes]
+        nss = [self.unwrap(fnss.value) for fnss in future_nss]
+
+        
         ncom = self.ncom
 
         assert dpss.setup_verification_check(self.pk, nss, ncom)
@@ -212,8 +196,8 @@ class Node(Wrapper):
 
     ''' Create Refresh Randomness Key '''
 
-
-    def distribution(self):
+    @distribute
+    def distribution(self, u):
 
         ssC, sstCt = dpss.distribution(self.pk)
         gssC, gsstCt = dpss.distribution(self.pk)
@@ -223,106 +207,78 @@ class Node(Wrapper):
         sst, Ct = sstCt
         gsst, gCt = gsstCt
 
-        old_msgs = [(ss[i], C, Ct, gss[i], gC, gCt) for i in range(self.n)]
-        new_msgs = [(sst[i], Ct, C, gsst[i], gCt, gC) for i in range(self.n)]
+        old_msgs = [self.wrap((ss[i], C, Ct, gss[i], gC, gCt)) for i in range(self.n)]
+        new_msgs = [self.wrap((sst[i], Ct, C, gsst[i], gCt, gC)) for i in range(self.n)]
 
-        self.dispense(old_msgs, 0)
-        self.dispense(new_msgs, 1)
+        return [old_msgs, new_msgs]
 
-    def old_distribution_verification_1(self):
+    @cache
+    def distribution_verification_1(self):
 
-        L = self.listread(1, 1)[0] # Read from new parties
+        nodes = self.get_new_nodes()
 
-        ss = [l[0] for l in L]
-        Cs = [l[1] for l in L]
-        Cts = [l[2] for l in L]
-        gss = [l[3] for l in L]
-        gCs = [l[4] for l in L]
-        gCts = [l[5] for l in L]
+        future_msgs = [n.distribution(self.u) for n in nodes]
+
+
+        ss = []
+        Cs = []
+        Cso = []
+        gss = []
+        gCs = []
+        gCso = []
+
+        for msg in future_msgs:
+            s, C, Co, gs, gC, gCo = self.unwrap(msg.value)
+            ss += [s]
+            Cs += [C]
+            Cso += [Co]
+            gss += [gs]
+            gCs += [gC]
+            gCso += [gCo]
 
 
         # TODO test this correctly
         c = 10
 
-        ns, ncom, ncomt = dpss.verification_dist(ss, Cs, gss, gCs, Cts, gCts, c)
+        if self.u[0] == 0:
+            ns, ncom, ncomt = dpss.verification_dist(ss, Cs, gss, gCs, Cso, gCso, c)
+        else:
+            ns, ncomt, ncom = dpss.verification_dist(ss, Cs, gss, gCs, Cso, gCso, c)
 
-        self.broadcast(ns, 0) # to Old parties
-        self.broadcast(ns, 1) # to New parties
+
         self.ncom = ncom
         self.ncomt = ncomt
 
         self.ss = ss
         self.Cs = Cs
-        self.Cts = Cts
+        self.Cso = Cso
 
-
-    def new_distribution_verification_1(self):
-
-        # TODO this is the same as above
-
-        L = self.listread(1, 1)[0] # read from the new parties
-
-        sst = [l[0] for l in L]
-        Cts = [l[1] for l in L]
-        Cs = [l[2] for l in L]
-        gsst = [l[3] for l in L]
-        gCts = [l[4] for l in L]
-        gCs = [l[5] for l in L]
-
-
-
-        # TODO test this correctly
-        c = 10
-
-        ns, ncomt, ncom = dpss.verification_dist(sst, Cts, gsst, gCts, Cs, gCs, c)
-
-        self.broadcast(ns, 0) # To Old Parties
-        self.broadcast(ns, 1) # To New parties
-        self.ncom = ncom
-        self.ncomt = ncomt
-
-
-        self.sst = sst
-        self.Cts = Cts
-        self.Cs = Cs
+        return self.wrap(ns)
 
     def distribution_verification_2(self):
 
-        onss = self.listread(1, 0)[0]
-        nnss = self.listread(1, 1)[0]
+
+        nodes = self.get_old_nodes()
+
+        new_nodes = self.get_new_nodes()
+
+        future_onss = [n.distribution_verification_1() for n in nodes]
+        future_nnss = [n.distribution_verification_1() for n in new_nodes]
+
+        onss = [self.unwrap(s.value) for s in future_onss]
+        nnss = [self.unwrap(s.value) for s in future_nnss]
 
         ncom = self.ncom
         ncomt = self.ncomt
 
 
+        return dpss.verification_check(self.pk, onss, ncom, nnss, ncomt)
 
-        assert dpss.verification_check(self.pk, onss, ncom, nnss, ncomt)
+    def generate_refresh_randomness(self):
 
+        assert self.distribution_verification_2()
 
-
-    def old_output(self):
-
-        ss = self.ss
-        Cs = self.Cs
-        Cts = self.Cts
-
-        rs, rcoms, rcomst = dpss.output(self.pk, ss, Cs, Cts)
-
-
-
-        self.refresh_shares += rs
-        self.old_refresh_coms += rcoms
-        self.new_refresh_coms += rcomst
-
-    def new_output(self):
-
-        # TODO this is the same as above
-
-        sst = self.sst
-        Cts = self.Cts
-        Cs = self.Cs
-
-        rs, rcomst, rcoms = dpss.output(self.pk, sst, Cts, Cs)
+        rs, rcoms, rcomst = dpss.output(self.pk, self.ss, self.Cs, self.Cso)
 
 
         self.refresh_shares += rs
@@ -344,7 +300,6 @@ class Node(Wrapper):
         return self.wrap((rs, com))
 
 
-    #@Pyro4.oneway
     def handle_share_response(self, srzu):
 
         s, r = self.unwrap(srzu)
@@ -364,8 +319,6 @@ class Node(Wrapper):
 
     @cache
     def release_share(self):
-
-
         
         # Refresh Randomness
         rs = self.refresh_shares.pop(0)
@@ -385,9 +338,6 @@ class Node(Wrapper):
 
         nodes = self.get_old_nodes()
 
-        for n in nodes:
-            n._pyroAsync()
-
         future_shares = [n.release_share() for n in nodes]
         shares = [self.unwrap(s.value) for s in future_shares]
 
@@ -399,7 +349,6 @@ class Node(Wrapper):
 
 
         
-    #@Pyro4.oneway
     def refresh(self):
 
 
@@ -444,7 +393,8 @@ if __name__ == '__main__':
     node = Node(u)
 
     # Register to Nameserver
-    daemon = Pyro4.Daemon('node' + str(v))
+    #daemon = Pyro4.Daemon('node' + str(v))
+    daemon = Pyro4.Daemon()
     ns = Pyro4.locateNS(host=NSHOST, port=NSPORT) 
     uri = daemon.register(node)
     ns.register(str(i) + str(j), uri)

@@ -25,22 +25,12 @@ class Client(Wrapper):
 
         return L
 
-    def get_old_nodes(self):
-        return [self.get_node((0, j)) for j in range(self.n)]
-
-    def get_new_nodes(self):
-        return [self.get_node((1, j)) for j in range(self.n)]
-
 
 
     def share(self, secret):
 
 
         nodes = self.get_old_nodes()
-
-        for n in nodes:
-            n._pyroAsync()
-
 
         future_shares = [n.handle_share_request() for n in nodes]
 
@@ -63,9 +53,6 @@ class Client(Wrapper):
     def reconstruct(self):
 
         nodes = self.get_new_nodes()
-        
-        for n in nodes:
-            n._pyroAsync()
 
         future_shares = [node.get_share() for node in nodes]
 
