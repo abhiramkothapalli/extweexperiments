@@ -80,9 +80,8 @@ class Node(Wrapper):
 
 
 
-    def __init__(self, u):
+    def __init__(self, u, NSHOST, NSPORT):
 
-        self.u = u
         self.blacklist = []
 
         # Secret Share
@@ -102,12 +101,9 @@ class Node(Wrapper):
         self.distributed = {}
         self.locks = {}
 
-    def set_params(self, params):
+        super().__init__(u, NSHOST, NSPORT)
 
-        n, pk = self.unwrap(params)
-        
-        self.n = n
-        self.pk = pk
+
 
     def flush(self):
 
@@ -129,6 +125,7 @@ class Node(Wrapper):
         self.cached = {}
         self.distributed = {}
         self.locks = {}
+
 
 
     ''' Create Randomness Key '''
@@ -383,18 +380,19 @@ if __name__ == '__main__':
 
     i = sys.argv[1]
     j = sys.argv[2]
-    NSHOST = sys.argv[3] #'127.0.0.1' #'192.168.1.1'
-    NSPORT = int(sys.argv[4])
+    NODEHOST = sys.argv[3]
+    NSHOST = sys.argv[4]
+    NSPORT = int(sys.argv[5])
     
     u = (int(i), int(j))
     v = 2 * int(i) + int(j)
 
     # Create Node Object
-    node = Node(u)
+    node = Node(u, NSHOST, NSPORT)
 
     # Register to Nameserver
-    #daemon = Pyro4.Daemon('node' + str(v))
-    daemon = Pyro4.Daemon()
+    daemon = Pyro4.Daemon(NODEHOST)
+    #daemon = Pyro4.Daemon()
     ns = Pyro4.locateNS(host=NSHOST, port=NSPORT) 
     uri = daemon.register(node)
     ns.register(str(i) + str(j), uri)

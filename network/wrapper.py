@@ -1,9 +1,6 @@
 import Pyro4
 import pickle
 import sys
-import base64
-import time
-
 
 sys.excepthook = Pyro4.util.excepthook
 
@@ -11,16 +8,22 @@ sys.excepthook = Pyro4.util.excepthook
 @Pyro4.behavior(instance_mode="single")
 class Wrapper():
 
+    def __init__(self, u, NSHOST, NSPORT):
 
-    def __init__(self, u, n):
         self.u = u
+        self.NSHOST = NSHOST
+        self.NSPORT = NSPORT
+
+    def set_params(self, params):
+
+        n, pk = self.unwrap(params)
+        
         self.n = n
+        self.pk = pk
 
     def get_node(self, u):
         i, j = u
-        # TODO: This is hardcoded
-        #ns = Pyro4.locateNS(host='bulletin', port=9090)
-        ns = Pyro4.locateNS(host='localhost', port=9090)
+        ns = Pyro4.locateNS(host=self.NSHOST, port=self.NSPORT)
         uri = ns.lookup(str(i) + str(j))
         node = Pyro4.Proxy(uri)
         return node

@@ -11,6 +11,16 @@ import pickle
 import params
 import os
 import create_network
+import timeit
+
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        result = timeit.timeit(lambda: func(*args, *kwargs), number=1)
+        name = str(func.__name__)
+        print(name + ": " +  str(result))
+        return result
+    return wrapper
 
 def wrap(m):
     c = pickle.dumps(m, protocol=0).decode('utf-8')
@@ -20,14 +30,15 @@ def unwrap(c):
     m = pickle.loads(c.encode('utf-8'))
     return m
 
-def create_client(n, pk):
+def create_client(n, pk, NSHOST, NSPORT):
 
     ''' Create a client '''
 
-    client_id = (2, 0)
-    
-    return Client(client_id, n, pk)
+    client = Client(None, NSHOST, NSPORT)
+    client.set_params(wrap((n, pk)))
+    return client
 
+@timer
 def generate_setup_randomness(nodes, new_nodes):
 
     ''' Setup Randomness Distribution and Verification '''
@@ -35,6 +46,7 @@ def generate_setup_randomness(nodes, new_nodes):
     results = [n.generate_setup_randomness() for n in nodes]
     [r.value for r in results]
 
+@timer
 def generate_refresh_randomness(nodes, new_nodes):
 
     ''' Refresh Randomness Distribution and Verification '''
@@ -42,7 +54,7 @@ def generate_refresh_randomness(nodes, new_nodes):
     results = [n.generate_refresh_randomness() for n in nodes + new_nodes]
     [r.value for r in results]
 
-
+@timer
 def refresh(nodes, new_nodes):
 
     ''' Refresh '''
@@ -73,55 +85,49 @@ def get_nodes(n, pk):
 
     return nodes, new_nodes
 
+@timer
+def client_share(client, secret):
+    client.share(secret)
 
-
+@timer
+def client_reconstruct(client):
+    client.reconstruct()
 
 def run_experiment(n, t, pk):
 
     nodes, new_nodes = get_nodes(n, pk)
 
+    #results = timeit.timeit(lambda: nodes[0].flush().wait(), number=1)
+
     ''' Setup '''
 
-    generate_setup_randomness(nodes, new_nodes)
-    generate_refresh_randomness(nodes, new_nodes)
+    setup_randomness_time = generate_setup_randomness(nodes, new_nodes)
+    refresh_randomness_time = generate_refresh_randomness(nodes, new_nodes)
 
     ''' Share '''
 
-    client = create_client(n, pk)
+    client = create_client(n, pk, params.NSHOST, params.NSPORT)
     secret = sampleGF()
-    start = time.time()
-    client.share(secret)
-    end = time.time()
-    share_time = end - start
-
-
+    client_share_time = client_share(client, secret)
+    
     ''' Refresh '''
 
-    start = time.time()
-    refresh(nodes, new_nodes)
-    end = time.time()
-    refresh_time = end - start
-
+    refresh_time = refresh(nodes, new_nodes)
 
     ''' Reconstruct '''
 
-    new_client = create_client(n, pk)
-    start = time.time()
-    reconst_secret = new_client.reconstruct()
-    end = time.time()
-    reconst_time = end - start
+    new_client = create_client(n, pk, params.NSHOST, params.NSPORT)
+    client_reconstruct_time = client_reconstruct(new_client)
 
-
-    ''' Sanity Check '''
-
-    assert secret == reconst_secret
-    return (share_time, refresh_time, reconst_time)
+    return (setup_randomness_time, refresh_randomness_time, client_share_time, refresh_time, client_reconstruct_time)
 
 if __name__ == '__main__':
 
     N = params.N
     T = params.T
     PK = params.PK
+
+    resultsfile = params.resultsfile
 
     Pyro4.config.THREADPOOL_SIZE = 1024
 
@@ -131,6 +137,13 @@ if __name__ == '__main__':
         print('Starting Experiment: ' + str(N[i]) + ' ' + str(T[i]))
         results = run_experiment(N[i], T[i], PK[i])
         print(results)
+
+
+        f = open(resultsfile, 'a+')
+        f.write(str(N[i]) + ', ' + str(results)[1:-1] + '\n')
+        f.close()
+
+        
 
     
         
