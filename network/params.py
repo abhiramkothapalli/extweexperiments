@@ -11,3 +11,5 @@ resultsfile = 'experiment_results.txt'
 
 PK = [dpss.setup(N[i], T[i]) for i in range(len(N))]
 
+THREADPOOL_SIZE = 2056
+

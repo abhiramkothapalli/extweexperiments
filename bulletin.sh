@@ -16,10 +16,6 @@ echo "Building"
 sudo make
 
 echo "Starting Nameserver"
-pyro4-ns -n $1 -p $2
+cd network
+python3 nameserver.py
 
-# Wait for nodes to start
-# sleep 20
-
-#cd network
-#python3 bulletin.py

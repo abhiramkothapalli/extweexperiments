@@ -7,7 +7,7 @@ class Client(Wrapper):
 
     def share(self, secret):
 
-        nodes = self.get_old_nodes()
+        nodes = self.old_nodes
 
         future_shares = [n.handle_share_request() for n in nodes]
 
@@ -28,7 +28,7 @@ class Client(Wrapper):
 
     def reconstruct(self):
 
-        nodes = self.get_new_nodes()
+        nodes = self.new_nodes
 
         future_shares = [node.get_share() for node in nodes]
 

@@ -8,6 +8,7 @@ import dpss
 from wrapper import Wrapper
 import time
 import vss
+import params
 
 from threading import Lock
 
@@ -146,7 +147,7 @@ class Node(Wrapper):
 
         c = 10 # TODO: test this correctly
 
-        nodes = self.get_old_nodes()
+        nodes = self.old_nodes
 
         future_results = [n.setup_distribution(u) for n in nodes]
         
@@ -174,7 +175,7 @@ class Node(Wrapper):
 
     def generate_setup_randomness(self):
 
-        nodes = self.get_old_nodes()
+        nodes = self.old_nodes
         
         future_nss = [n.setup_distribution_verification() for n in nodes]
         nss = [self.unwrap(fnss.value) for fnss in future_nss]
@@ -212,7 +213,7 @@ class Node(Wrapper):
     @cache
     def distribution_verification_1(self):
 
-        nodes = self.get_new_nodes()
+        nodes = self.new_nodes
 
         future_msgs = [n.distribution(self.u) for n in nodes]
 
@@ -255,9 +256,9 @@ class Node(Wrapper):
     def distribution_verification_2(self):
 
 
-        nodes = self.get_old_nodes()
+        nodes = self.old_nodes
 
-        new_nodes = self.get_new_nodes()
+        new_nodes = self.new_nodes
 
         future_onss = [n.distribution_verification_1() for n in nodes]
         future_nnss = [n.distribution_verification_1() for n in new_nodes]
@@ -311,8 +312,8 @@ class Node(Wrapper):
 
 
     def get_king(self):
-        # TODO: Do not hardcode
         return self.get_node((0, 0))
+        #return self.old_nodes[0]
 
     @cache
     def release_share(self):
@@ -333,7 +334,7 @@ class Node(Wrapper):
     @cache
     def refresh_reconstruct(self):
 
-        nodes = self.get_old_nodes()
+        nodes = self.old_nodes
 
         future_shares = [n.release_share() for n in nodes]
         shares = [self.unwrap(s.value) for s in future_shares]
@@ -376,6 +377,8 @@ class Node(Wrapper):
 
         
 if __name__ == '__main__':
+
+    Pyro4.config.THREADPOOL_SIZE = params.THREADPOOL_SIZE
 
 
     i = sys.argv[1]

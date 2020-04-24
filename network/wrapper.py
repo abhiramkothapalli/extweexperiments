@@ -14,12 +14,21 @@ class Wrapper():
         self.NSHOST = NSHOST
         self.NSPORT = NSPORT
 
-    def set_params(self, params):
+    def initalize(self, params):
+
+        self.flush()
 
         n, pk = self.unwrap(params)
         
         self.n = n
         self.pk = pk
+
+        self.old_nodes = self.get_old_nodes()
+        self.new_nodes = self.get_new_nodes()
+
+
+    def flush(self):
+        return None
 
     def get_node(self, u):
         i, j = u
@@ -29,6 +38,7 @@ class Wrapper():
         return node
 
     def get_old_nodes(self):
+
         nodes = [self.get_node((0, j)) for j in range(self.n)]
 
         for n in nodes:

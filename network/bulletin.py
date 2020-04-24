@@ -35,7 +35,7 @@ def create_client(n, pk, NSHOST, NSPORT):
     ''' Create a client '''
 
     client = Client(None, NSHOST, NSPORT)
-    client.set_params(wrap((n, pk)))
+    client.initalize(wrap((n, pk)))
     return client
 
 @timer
@@ -71,11 +71,9 @@ def get_nodes(n, pk):
     ''' Setup Environment '''
     
     for node in nodes:
-        node.flush()
-        node.set_params(wrap((n, pk)))
+        node.initalize(wrap((n, pk)))
     for node in new_nodes:
-        node.flush()
-        node.set_params(wrap((n, pk)))
+        node.initalize(wrap((n, pk)))
 
     # Make all nodes async
     for node in nodes:
@@ -129,7 +127,7 @@ if __name__ == '__main__':
 
     resultsfile = params.resultsfile
 
-    Pyro4.config.THREADPOOL_SIZE = 1024
+    Pyro4.config.THREADPOOL_SIZE = params.THREADPOOL_SIZE
 
 
     for i in range(len(N)):
