@@ -20,4 +20,4 @@ sleep 300
 
 echo "Starting Node"
 cd /local/repository/network
-python3 node.py $1 $2 $3 $4
+python3 node.py $1 $2 $3 $4 $5
