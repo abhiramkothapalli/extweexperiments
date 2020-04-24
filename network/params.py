@@ -1,7 +1,7 @@
 import dpss
 
 
-N = [4, 8]
+N = [2]
 T = [int(n / 2) for n in N]
 
 NSHOST = 'bulletin'
