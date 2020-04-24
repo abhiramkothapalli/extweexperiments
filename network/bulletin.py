@@ -123,23 +123,24 @@ if __name__ == '__main__':
 
     N = params.N
     T = params.T
+    R = params.R
     PK = params.PK
 
     resultsfile = params.resultsfile
 
     Pyro4.config.THREADPOOL_SIZE = params.THREADPOOL_SIZE
 
+    for r in range(R):
+        for i in range(len(N)):
 
-    for i in range(len(N)):
-
-        print('Starting Experiment: ' + str(N[i]) + ' ' + str(T[i]))
-        results = run_experiment(N[i], T[i], PK[i])
-        print(results)
+            print('Starting Experiment: ' + str(N[i]) + ' ' + str(T[i]))
+            results = run_experiment(N[i], T[i], PK[i])
+            print(results)
 
 
-        f = open(resultsfile, 'a+')
-        f.write(str(N[i]) + ', ' + str(results)[1:-1] + '\n')
-        f.close()
+            f = open(resultsfile, 'a+')
+            f.write(str(N[i]) + ', ' + str(results)[1:-1] + '\n')
+            f.close()
 
         
 
