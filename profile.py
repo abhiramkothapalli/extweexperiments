@@ -3,7 +3,7 @@
 import geni.portal as portal
 import geni.rspec.pg as pg
 
-N = 16
+N = 128
 NSHOST = 'bulletin'
 NSPORT = 9090
 
