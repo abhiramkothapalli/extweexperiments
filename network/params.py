@@ -1,9 +1,9 @@
 import dpss
 
 
-N = [4, 8, 16, 32, 64, 128] # CONFIGURE
+N = [4, 8, 16] # CONFIGURE
 T = [int(n / 2) for n in N]
-R = 10 # CONFIGURE
+R = 1 # CONFIGURE
 
 NSHOST = 'bulletin' # CONFIGURE
 NSPORT = 9090

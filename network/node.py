@@ -14,76 +14,65 @@ from threading import Lock
 
 sys.excepthook = Pyro4.util.excepthook
 
+def distribute(func):
 
-@Pyro4.expose
+    ''' Cached Distribution Decorator '''
+
+    def wrapper(*args, **kwargs):
+
+        key = func.__name__
+
+        if key not in args[0].locks:
+            args[0].locks[key] = Lock()
+            
+        args[0].locks[key].acquire()
+
+        # If function is called for the first time compute
+        # and cache the result
+        if key not in args[0].cached:
+            res = func(*args, **kwargs)
+            args[0].cached[key] = res
+
+        # Otherwise if node is calling for the first time
+        # Pop element in the list and provide to node
+        node = Pyro4.current_context.client.sock.getpeername()
+        if node not in args[0].distributed:
+            res = args[0].cached[key][int(args[1][0])][int(args[1][1])]
+            args[0].distributed[node] = res
+
+        args[0].locks[key].release()
+            
+        return args[0].distributed[node]
+            
+    return wrapper
+
+
+def cache(func):
+
+    ''' Caching decorator '''
+
+    def wrapper(*args, **kwargs):
+        key = func.__name__
+
+        if key not in args[0].locks:
+            args[0].locks[key] = Lock()
+
+        args[0].locks[key].acquire()
+            
+        if key not in args[0].cached:
+            res = func(*args, **kwargs)
+            args[0].cached[key] = res
+
+        args[0].locks[key].release()
+                
+        return args[0].cached[key]
+            
+    return wrapper
+
 @Pyro4.behavior(instance_mode="single")
 class Node(Wrapper):
 
-    def distribute(func):
-
-        ''' Cached Distribution Decorator '''
-
-        def wrapper(*args, **kwargs):
-
-
-            key = func.__name__
-
-            if key not in args[0].locks:
-                args[0].locks[key] = Lock()
-
-            args[0].locks[key].acquire()
-
-            # If function is called for the first time compute
-            # and cache the result
-            if key not in args[0].cached:
-                res = func(*args, **kwargs)
-                args[0].cached[key] = res
-
-            # Otherwise if node is calling for the first time
-            # Pop element in the list and provide to node
-            node = Pyro4.current_context.client.sock.getpeername()
-            if node not in args[0].distributed:
-                res = args[0].cached[key][int(args[1][0])][int(args[1][1])]
-                args[0].distributed[node] = res
-
-            args[0].locks[key].release()
-                
-            
-            return args[0].distributed[node]
-
-    
-            
-        return wrapper
-
-
-    def cache(func):
-        ''' Caching decorator '''
-
-        def wrapper(*args, **kwargs):
-            key = func.__name__
-
-            if key not in args[0].locks:
-                args[0].locks[key] = Lock()
-
-            args[0].locks[key].acquire()
-            
-            if key not in args[0].cached:
-                res = func(*args, **kwargs)
-                args[0].cached[key] = res
-
-            args[0].locks[key].release()
-
-
-                
-            return args[0].cached[key]
-            
-        return wrapper
-
-
-
     def __init__(self, u, NSHOST, NSPORT):
-
-        self.blacklist = []
 
         # Secret Share
         self.share = None
@@ -105,10 +94,8 @@ class Node(Wrapper):
         super().__init__(u, NSHOST, NSPORT)
 
 
-
+    @Pyro4.expose
     def flush(self):
-
-        self.blacklist = []
 
         # Secret Share
         self.share = None
@@ -125,12 +112,17 @@ class Node(Wrapper):
 
         self.cached = {}
         self.distributed = {}
-        self.locks = {}
 
+        
+    def get_challenge(self):
+        # CONFIGURE: In practice this is sampled from a trusted bulletin board
+        # such as the blockchain.
+        return 10
 
 
     ''' Create Randomness Key '''
 
+    @Pyro4.expose
     @distribute
     def setup_distribution(self, u):
         
@@ -142,21 +134,22 @@ class Node(Wrapper):
         return [shares]
 
 
+    @Pyro4.expose
     @cache
     def setup_distribution_verification(self):
 
-        c = 10 # TODO: test this correctly
+        c = self.get_challenge()
 
         nodes = self.old_nodes
 
-        future_results = [n.setup_distribution(u) for n in nodes]
+        request_results = [n.setup_distribution(u) for n in nodes]
         
         ss = []
         coms = []
         gss = []
         gcoms = []
 
-        for res in future_results:
+        for res in request_results:
             s, C, gs, gC = self.unwrap(res.value)
             ss += [s]
             coms += [C]
@@ -165,7 +158,6 @@ class Node(Wrapper):
 
         ns, ncom = dpss.setup_verification_dist(ss, coms, gss, gcoms, c)
 
-
         self.ss = ss
         self.coms = coms
         self.ncom = ncom
@@ -173,14 +165,11 @@ class Node(Wrapper):
         return self.wrap(ns)
 
 
+    @Pyro4.expose
     def generate_setup_randomness(self):
-
-        nodes = self.old_nodes
         
-        future_nss = [n.setup_distribution_verification() for n in nodes]
-        nss = [self.unwrap(fnss.value) for fnss in future_nss]
-
-        
+        request_nss = [n.setup_distribution_verification() for n in self.old_nodes]
+        nss = [self.unwrap(fnss.value) for fnss in request_nss]
         ncom = self.ncom
 
         assert dpss.setup_verification_check(self.pk, nss, ncom)
@@ -194,6 +183,7 @@ class Node(Wrapper):
 
     ''' Create Refresh Randomness Key '''
 
+    @Pyro4.expose
     @distribute
     def distribution(self, u):
 
@@ -210,13 +200,11 @@ class Node(Wrapper):
 
         return [old_msgs, new_msgs]
 
+    @Pyro4.expose
     @cache
     def distribution_verification_1(self):
 
-        nodes = self.new_nodes
-
-        future_msgs = [n.distribution(self.u) for n in nodes]
-
+        request_msgs = [n.distribution(self.u) for n in self.new_nodes]
 
         ss = []
         Cs = []
@@ -225,7 +213,7 @@ class Node(Wrapper):
         gCs = []
         gCso = []
 
-        for msg in future_msgs:
+        for msg in request_msgs:
             s, C, Co, gs, gC, gCo = self.unwrap(msg.value)
             ss += [s]
             Cs += [C]
@@ -235,8 +223,7 @@ class Node(Wrapper):
             gCso += [gCo]
 
 
-        # TODO test this correctly
-        c = 10
+        c = self.get_challenge()
 
         if self.u[0] == 0:
             ns, ncom, ncomt = dpss.verification_dist(ss, Cs, gss, gCs, Cso, gCso, c)
@@ -255,29 +242,23 @@ class Node(Wrapper):
 
     def distribution_verification_2(self):
 
+        request_onss = [n.distribution_verification_1() for n in self.old_nodes]
+        request_nnss = [n.distribution_verification_1() for n in self.new_nodes]
 
-        nodes = self.old_nodes
-
-        new_nodes = self.new_nodes
-
-        future_onss = [n.distribution_verification_1() for n in nodes]
-        future_nnss = [n.distribution_verification_1() for n in new_nodes]
-
-        onss = [self.unwrap(s.value) for s in future_onss]
-        nnss = [self.unwrap(s.value) for s in future_nnss]
+        onss = [self.unwrap(s.value) for s in request_onss]
+        nnss = [self.unwrap(s.value) for s in request_nnss]
 
         ncom = self.ncom
         ncomt = self.ncomt
 
-
         return dpss.verification_check(self.pk, onss, ncom, nnss, ncomt)
 
+    @Pyro4.expose
     def generate_refresh_randomness(self):
 
         assert self.distribution_verification_2()
 
         rs, rcoms, rcomst = dpss.output(self.pk, self.ss, self.Cs, self.Cso)
-
 
         self.refresh_shares += rs
         self.old_refresh_coms += rcoms
@@ -286,23 +267,29 @@ class Node(Wrapper):
 
     ''' Share '''
 
+    @Pyro4.expose
     def handle_share_request(self):
+
+        # If no setup randomness available
+        # then generate more.
+        if not self.setup_shares:
+            self.generate_setup_randomness()
 
         # Pick out a setup randomness key
         rs = self.setup_shares.pop(0)
         com = self.setup_coms.pop(0)
 
         self.rs = rs
-        self.com = com # TODO: This might be the one we want
+        self.com = com
 
         return self.wrap((rs, com))
 
 
+    @Pyro4.expose
     def handle_share_response(self, srzu):
 
         s, r = self.unwrap(srzu)
         share, com = dpss.setup_fresh_parties(self.pk, s, r, self.rs, self.com)
-
 
         self.share = share
         self.com = com
@@ -312,18 +299,18 @@ class Node(Wrapper):
 
 
     def get_king(self):
+        # CONFIGURE: In practice, the king will change each round.
         return self.get_node((0, 0))
         #return self.old_nodes[0]
 
+    @Pyro4.expose
     @cache
     def release_share(self):
         
         # Refresh Randomness
         rs = self.refresh_shares.pop(0)
-
         rcom = self.old_refresh_coms.pop(0)
-
-        self.rcom = rcom # TODO: this is only for the king
+        self.rcom = rcom
 
         share, com = dpss.refresh_preprocessing(self.share, self.com, rs, rcom)
 
@@ -331,14 +318,12 @@ class Node(Wrapper):
 
 
 
+    @Pyro4.expose
     @cache
     def refresh_reconstruct(self):
 
-        nodes = self.old_nodes
-
-        future_shares = [n.release_share() for n in nodes]
-        shares = [self.unwrap(s.value) for s in future_shares]
-
+        request_shares = [n.release_share() for n in self.old_nodes]
+        shares = [self.unwrap(s.value) for s in request_shares]
 
         kcom = self.com + self.rcom
         kpi = dpss.refresh_king(self.pk, shares, kcom)
@@ -346,9 +331,13 @@ class Node(Wrapper):
         return self.wrap((kpi, kcom))
 
 
-        
+    @Pyro4.expose
     def refresh(self):
 
+        # If no setup randomness available
+        # then generate more.
+        if not self.refresh_shares:
+            self.generate_refresh_shares()
 
         # Get material from king
         king = self.get_king()
@@ -361,7 +350,6 @@ class Node(Wrapper):
 
         new_share, new_com = dpss.refresh_postprocessing(self.pk, ks, kcom, rs, rcom)
 
-
         # Store new secret
         self.share = new_share
         self.com = new_com
@@ -371,15 +359,19 @@ class Node(Wrapper):
     ''' Reconstruct '''
 
 
+    @Pyro4.expose
     def get_share(self):
         # TODO this should only be visible to client
-        return self.wrap((self.share, self.com))
+
+        if not self.share:
+            raise Exception('Node ' + str(self.u) + ' does not have requested share')
+        else:
+            return self.wrap((self.share, self.com))
 
         
 if __name__ == '__main__':
 
     Pyro4.config.THREADPOOL_SIZE = params.THREADPOOL_SIZE
-
 
     i = sys.argv[1]
     j = sys.argv[2]
@@ -395,12 +387,20 @@ if __name__ == '__main__':
 
     # Register to Nameserver
     daemon = Pyro4.Daemon(NODEHOST)
-    #daemon = Pyro4.Daemon()
-    ns = Pyro4.locateNS(host=NSHOST, port=NSPORT) 
+
+    print('Node ' + str(u) + ': Attempting to connect to name server')
+
+    while True:
+        try:
+            ns = Pyro4.locateNS(host=NSHOST, port=NSPORT)
+            break
+        except:
+            time.sleep(10)
+    
     uri = daemon.register(node)
     ns.register(str(i) + str(j), uri)
 
-    print('Starting Node: ' + str(u))
+    print('Node ' + str(u) + ': Starting')
 
     daemon.requestLoop()
 

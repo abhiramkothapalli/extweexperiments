@@ -3,7 +3,7 @@
 import geni.portal as portal
 import geni.rspec.pg as pg
 
-N = 128 # CONFIGURE
+N = 16 # CONFIGURE
 NSHOST = 'bulletin'
 NSPORT = 9090
 
@@ -21,11 +21,11 @@ M = 2 * N
 # Create Nodes
 nodes = []
 for n in range(0, M):
-    node = request.XenVM('node' + str(n))
+    node = request.RawPC('node' + str(n))
     nodes += [node]
 
 
-bulletin = request.XenVM(NSHOST)
+bulletin = request.RawPC(NSHOST)
 
 
 ''' Networking '''
