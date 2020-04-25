@@ -1,7 +1,7 @@
 import dpss
 
 
-N = [10, 20, 30, 40] # CONFIGURE
+N = [5, 10, 15, 20] # CONFIGURE
 T = [int(n / 2) for n in N]
 R = 1 # CONFIGURE
 
