@@ -140,6 +140,9 @@ def share(pk, m=None, r=None):
 
     return (ss, C)
 
+
+import time
+
 def reconstruct(pk, shares):
 
     u, v, Pu, Pv = reconstruct_full(pk, shares)
@@ -153,8 +156,25 @@ def reconstruct_full(pk, shares):
     # TODO: potentially check commitment is valid
 
     ss, C = shares
-
     t = pk['t']
+
+    # ''' Simple check '''
+
+    # X = [s.i for s in ss]
+    # Yu = [s.u for s in ss]
+    # Yv = [s.v for s in ss]
+
+
+    # Pu, Pv = interpolate(X, [Yu, Yv])
+
+    # # If all points lie on same polynomial
+    # # by honest majority property, we know
+    # # shares are correct without having to
+    # # check proof of correct evaluation.
+    # if Pu.deg() <= t and Pv.deg() <= t:
+    #     return Pu(GF(0)), Pv(GF(0)), Pu, Pv
+
+    ''' Hard check if simple check fails '''
 
     vss = []
     for s in ss:
@@ -165,9 +185,6 @@ def reconstruct_full(pk, shares):
 
     if len(vss) < t:
         raise Exception('Not enough verified shares.')
-
-    # TODO: this is not a good solution
-    vss = vss[:t+1]
 
     X = [s.i for s in vss]
     Yu = [s.u for s in vss]
@@ -183,8 +200,8 @@ def reconstruct_full(pk, shares):
 if __name__ == '__main__':
 
     # Pick standard threshold.
-    n = 10
-    t = 5
+    n = 64
+    t = int(n/2)
 
     pk = setup(n, t)
 
@@ -195,7 +212,11 @@ if __name__ == '__main__':
     shares = share(pk, secret)
 
     # Reconstruct the secret from shares.
+    start = time.process_time()
     reconst = reconstruct(pk, shares)[0]
+    end = time.process_time()
+
+    print(str(n) + " reconstruction time: " + str(end - start))
 
     # Check validity of reconstruction.
     assert secret == reconst

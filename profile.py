@@ -3,7 +3,7 @@
 import geni.portal as portal
 import geni.rspec.pg as pg
 
-N = 64 # CONFIGURE
+N = 40 # CONFIGURE
 NSHOST = 'bulletin'
 NSPORT = 9090
 
@@ -38,7 +38,16 @@ bulletin = request.RawPC(NSHOST)
 # for n in range(0, M):
 #     request.Link(members=[nodes[n], bulletin])
 
+# lan = request.LAN()
+
+# for n in nodes + [bulletin]:
+#     iface = node.addInterface("eth1")
+#     lan.addInterface(iface)
+
+
 request.Link(members=(nodes + [bulletin]))
+
+
 
     
 

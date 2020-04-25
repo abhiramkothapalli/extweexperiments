@@ -161,6 +161,18 @@ class Polynomial():
     def coeffs(self):
         return self.p.tolist()
 
+    # TODO: BETTER IMPLEMENTATION
+    def deg(self):
+        tot = 0
+        for e in self.p[::-1]:
+            if type(e) == GF and e.n == '0':
+                tot += 1
+            elif type(e) == int and e == 0:
+                tot += 1
+            else:
+                break
+        return len(self.p) - tot
+
 def samplePoly(d, s=None):
 
     P = Polynomial([sampleGF() for i in range(0, d)])
