@@ -21,11 +21,11 @@ M = 2 * N
 # Create Nodes
 nodes = []
 for n in range(0, M):
-    node = request.RawPC('node' + str(n))
+    node = request.XenVM('node' + str(n))
     nodes += [node]
 
 
-bulletin = request.RawPC(NSHOST)
+bulletin = request.XenVM(NSHOST)
 
 
 ''' Networking '''
