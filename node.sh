@@ -15,6 +15,9 @@ sudo python3 -m pip install Pyro4 numpy
 echo "Building"
 sudo make
 
+echo "Waiting for ns to start"
+sleep 600
+
 echo "Starting Node"
 cd /local/repository/network
 python3 node.py $1 $2 $3 $4 $5
