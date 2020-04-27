@@ -90,6 +90,9 @@ class GF(object):
     def __str__(self):
         return str(to_string(self.n))
 
+    def __del__(self):
+        free(self.n)
+
 def sampleGF():
     return GF(random.randint(0, order))
 
@@ -106,6 +109,9 @@ class EC(object):
     
     def __repr__(self):
         return repr(self.n)
+
+    def __del__(self):
+         free(self.n)
     
 
 class EC1(EC):

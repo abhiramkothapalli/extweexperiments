@@ -74,6 +74,8 @@ bool eq(Ec2 *a, Ec2 * b);
 
 Fp12 * new_fp12();
 
+void free(Fp12* a);
+
 void pairing(Fp12 * a, Ec1 * b, Ec2 * c);
 
 void mul(Fp12 * a, Fp12 * b, Fp12 * c);

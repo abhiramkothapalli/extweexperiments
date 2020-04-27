@@ -152,6 +152,10 @@ Fp12 * new_fp12() {
   return a;
 }
 
+void free(Fp12* a) {
+  delete a;
+}
+
 void pairing(Fp12 * a, Ec1 * b, Ec2 * c) {
   opt_atePairing(*a, *c, *b);
 }
