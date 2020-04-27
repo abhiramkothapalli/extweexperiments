@@ -152,9 +152,6 @@ def reconstruct(pk, shares):
 
 def reconstruct_full(pk, shares):
 
-    # TODO: potentially return proof
-    # TODO: potentially check commitment is valid
-
     ss, C = shares
     t = pk['t']
 
@@ -194,13 +191,10 @@ def reconstruct_full(pk, shares):
 
     return Pu(GF(0)), Pv(GF(0)), Pu, Pv
 
-    
-
-
 if __name__ == '__main__':
 
     # Pick standard threshold.
-    n = 64
+    n = 128
     t = int(n/2)
 
     pk = setup(n, t)

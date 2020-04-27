@@ -1,26 +1,33 @@
 #!/usr/bin/env python
 
 import random
-from lib.atepairing.python.wrapper import *
+from lib.atepairing.python.gfeccore import *
 
 # Setup must always be called upon loading library
 setup()
-
 order = int(get_order())
 
 class GF(object):
 
     def __init__(self, n):
         if isinstance(n, str):
-            self.n = str(int(n) % order)
-        if isinstance(n, int):
-            self.n = str(n % order) # Could add n % order
+            self.n = new_gf(str(int(n) % order))
+        elif isinstance(n, int):
+            self.n = new_gf(str(n % order))
+        else:
+            # Assume its a swig pointer
+            # TODO fix this
+            self.n = n
 
     def __add__(self, o):
         if isinstance(o, GF):
-            return GF(add(self.n, o.n))
+            n = new_gf('0')
+            add(n, self.n, o.n)
+            return GF(n)
         elif isinstance(o, int):
-            return GF(add(self.n, GF(o).n))
+            n = new_gf('0')
+            add(n, self.n, GF(o).n)
+            return GF(n)
         else:
             raise NotImplementedError
 
@@ -28,17 +35,25 @@ class GF(object):
 
     def __sub__(self, o):
         if isinstance(o, GF):
-            return GF(sub(self.n, o.n))
+            n = new_gf('0')
+            sub(n, self.n, o.n)
+            return GF(n)
         elif isinstance(o, int):
-            return GF(sub(self.n, GF(o).n))
+            n = new_gf('0')
+            sub(n, self.n, GF(o).n)
+            return GF(n)
         else:
             raise NotImplementedError
 
     def __mul__(self, o):
         if isinstance(o, GF):
-            return GF(mul(self.n, o.n))
+            n = new_gf('0')
+            mul(n, self.n, o.n)
+            return GF(n)
         elif isinstance(o, int):
-            return GF(mul(self.n, GF(o).n))
+            n = new_gf('0')
+            mul(n, self.n, GF(o).n)
+            return GF(n)
         else:
             raise NotImplementedError
 
@@ -46,44 +61,68 @@ class GF(object):
 
     def __truediv__(self, o):
         if isinstance(o, GF):
-            return GF(div(self.n, o.n))
+            n = new_gf('0')
+            div(n, self.n, o.n)
+            return GF(n)
         elif isinstance(o, int):
-            return GF(div(self.n, GF(o).n))
+            n = new_gf('0')
+            div(n, self.n, GF(o).n)
+            return GF(n)
         else:
             raise NotImplementedError
 
     def __neg__(self):
-        return GF(neg(self.n))
+        n = new_gf('0')
+        neg(n, self.n)
+        return GF(n)
 
     def __invert__(self):
-        return GF(inv(self.n))
+        n = new_gf('0')
+        inv(n, self.n)
+        return GF(n)
 
     def __eq__(self, o):
-        return self.n == o.n
+        return eq(self.n, o.n)
 
     def __repr__(self):
         return repr(self.n)
 
     def __str__(self):
-        return str(self.n)
+        return str(to_string(self.n))
 
 def sampleGF():
-    return GF(str(random.randint(0, order)))
+    return GF(random.randint(0, order))
 
-
-
-class EC1(object):
+class EC(object):
 
     def __init__(self, n):
         self.n = n
 
+    def __eq__(self, o):
+        return eq(self.n, o.n)
+
+    def __str__(self):
+        return str(to_string(self.n))
+    
+    def __repr__(self):
+        return repr(self.n)
+    
+
+class EC1(EC):
+
     def __mul__(self, o):
         if isinstance(o, GF):
-            return EC1(ec1smul(self.n, o.n))
+            e = new_ec1()
+            smul(e, self.n, o.n)
+            return EC1(e)
         elif isinstance(o, int):
-            return EC1(ec1smul(self.n, GF(o).n))
+            e = new_ec1()
+            smul(e, self.n, GF(o).n)
+            return EC1(e)
         elif isinstance(o, EC2):
-            return EC12(pairing(self.n, o.n))
+            e = new_fp12()
+            pairing(e, self.n, o.n)
+            return EC12(e)
         else:
             raise NotImplementedError
 
@@ -91,38 +130,38 @@ class EC1(object):
 
     def __add__(self, o):
         if isinstance(o, EC1):
-            return EC1(ec1add(self.n, o.n))
+            e = new_ec1()
+            add(e, self.n, o.n)
+            return EC1(e)
         else:
             raise NotImplementedError
 
     def __sub__(self, o):
         if isinstance(o, EC1):
-            return EC1(ec1sub(self.n, o.n))
+            e = new_ec1()
+            sub(e, self.n, o.n)
+            return EC1(e)
         else:
             raise NotImplementedError
 
-    def __eq__(self, o):
-        return ec1eq(self.n, o.n)
-
-    def __str__(self):
-        return str(self.n)
-    
-    def __repr__(self):
-        return repr(self.n)
 
 
-class EC2(object):
 
-    def __init__(self, n):
-        self.n = n
+class EC2(EC):
 
     def __mul__(self, o):
         if isinstance(o, GF):
-            return EC2(ec2smul(self.n, o.n))
+            e = new_ec2()
+            smul(e, self.n, o.n)
+            return EC2(e)
         elif isinstance(o, int):
-            return EC2(ec2smul(self.n, GF(o).n))
+            e = new_ec2()
+            smul(e, self.n, GF(o).n)
+            return EC2(e)
         elif isinstance(o, EC1):
-            return EC12(pairing(o.n, self.n))
+            e = new_fp12()
+            pairing(e, o.n, self.n)
+            return EC12(e)
         else:
             raise NotImplementedError
 
@@ -131,58 +170,38 @@ class EC2(object):
 
     def __add__(self, o):
         if isinstance(o, EC2):
-            return EC2(ec2add(self.n, o.n))
+            e = new_ec2()
+            add(e, self.n, o.n)
+            return EC2(e)
         else:
             raise NotImplementedError
 
     def __sub__(self, o):
         if isinstance(o, EC2):
-            return EC2(ec2sub(self.n, o.n))
+            e = new_ec2()
+            sub(e, self.n, o.n)
+            return EC2(e)
         else:
             raise NotImplementedError
 
-    def __eq__(self, o):
-        return ec2eq(self.n, o.n)
 
-    def __str__(self):
-        return str(self.n)
-    
-    def __repr__(self):
-        return repr(self.n)
-
-
-class EC12(object):
-
-    # TODO add c++ wrapper for add, sub
-
-    def __init__(self, n):
-        self.n = n
+class EC12(EC):
 
     def __mul__(self, o):
         if isinstance(o, EC12):
-            return EC12(ec12mul(self.n, o.n))
+            e = new_fp12()
+            mul(e, self.n, o.n)
+            return EC12(e)
         else:
             raise NotImplementedError
-
-    def __eq__(self, o):
-        return self.n == o.n
-        #return ec12eq(self.n, o.n) #TODO: Use proper definition
-
-    def __str__(self):
-        return str(self.n)
-
-    def __repr__(self):
-        return repr(self.n)
     
-
-
 g1 = EC1(get_g1())
 g2 = EC2(get_g2())
 
 def pair(a, b):
-    return EC12(pairing(a.n, b.n))
-
-
+    e = new_fp12()
+    pairing(e, a.n, b.n)
+    return EC12(e)
 
 if __name__ == '__main__':
 
@@ -196,11 +215,9 @@ if __name__ == '__main__':
     c = sampleGF()
     d = sampleGF()
 
-
     x = 10
     y = 20
     z = 30
-
 
     # typing checks
     assert GF(x) + GF(y) == GF(x + y)
@@ -228,7 +245,6 @@ if __name__ == '__main__':
     assert g1 * 2 == g1 + g1
     assert g1 + g1 + g1 == g1 * 3
 
-
     # Check Associativity
     assert (g1 + g1) + g1 == g1 + (g1 + g1)
 
@@ -237,21 +253,16 @@ if __name__ == '__main__':
     g1y = g1 * y
     assert g1x + g1y == g1y + g1x
 
-    
     # Check Distributive Property
     assert g1 * x + g1 * y == g1 * (x + y)
     assert g1 * a + g1 * b == g1 * (a + b)
-
 
     # Basic homomorphic checks
     assert g1 * a + g1 * b + g1 * c + g1 * d == g1 * (a + b + c + d)
     assert g1 * a + g1 * a + g1 * a + g1 * a + g1 * a == g1 * (5 * a)
 
-
-
     # Twist Curve Checks
     assert g2 * (a + b) == g2 * a + g2 * b
-
 
     # Pairing checks
     p1 = pair(g1 * b, g2 * a)
@@ -261,6 +272,8 @@ if __name__ == '__main__':
     assert p1 == p2
     assert p3 == p4
     assert p1 * p3 == p2 * p4
+
+
     
     
 
