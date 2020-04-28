@@ -3,7 +3,7 @@
 import geni.portal as portal
 import geni.rspec.pg as pg
 
-N = 64 # CONFIGURE
+N = 8 # CONFIGURE
 NSHOST = 'bulletin'
 NSPORT = 9090
 
@@ -12,7 +12,6 @@ pc = portal.Context()
 
 # Create a Request object to start building the RSpec.
 request = pc.makeRequestRSpec()
-
 
 M = 2 * N
 
@@ -23,7 +22,6 @@ nodes = []
 for n in range(0, M):
     node = request.XenVM('node' + str(n))
     nodes += [node]
-
 
 bulletin = request.XenVM(NSHOST)
 
@@ -46,11 +44,6 @@ bulletin = request.XenVM(NSHOST)
 
 
 request.Link(members=(nodes + [bulletin]))
-
-
-
-    
-
 
 
 ''' VM SETUP '''

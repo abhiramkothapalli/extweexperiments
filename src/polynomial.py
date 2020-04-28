@@ -3,6 +3,7 @@
 from gfec import GF, sampleGF
 import numpy as np
 
+np.seterr(all='ignore')
 
 class Polynomial():
 
@@ -58,11 +59,8 @@ class Polynomial():
 
         if (isinstance(o, GF) or
             isinstance(o, int)):
-
             return Polynomial(self.p * o)
-
         elif isinstance(o, Polynomial):
-
             return Polynomial(np.convolve(self.p, o.p))
 
     __rmul__ = __mul__
@@ -71,8 +69,6 @@ class Polynomial():
 
         c1 = np.copy(a)
         c2 = np.copy(b)
-
-        
 
         lc1 = len(c1)
         lc2 = len(c2)

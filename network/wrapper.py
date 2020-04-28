@@ -1,6 +1,6 @@
-import Pyro4
-import pickle
 import sys
+import Pyro4
+from serializer import *
 
 sys.excepthook = Pyro4.util.excepthook
 
@@ -8,12 +8,12 @@ sys.excepthook = Pyro4.util.excepthook
 @Pyro4.expose
 class Wrapper():
 
-
     def __init__(self, u, NSHOST, NSPORT):
 
         self.u = u
         self.NSHOST = NSHOST
         self.NSPORT = NSPORT
+
 
     def flush(self):
         return None
@@ -51,7 +51,7 @@ class Wrapper():
 
         self.flush()
 
-        n, pk = self.unwrap(params)
+        n, pk = params
         
         self.n = n
         self.pk = pk
@@ -60,13 +60,3 @@ class Wrapper():
 
         self.old_nodes = old_nodes
         self.new_nodes = new_nodes
-
-
-
-    def wrap(self, m):
-        c = pickle.dumps(m, protocol=0).decode('utf-8')
-        return c
-
-    def unwrap(self, c):
-        m = pickle.loads(c.encode('utf-8'))
-        return m

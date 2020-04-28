@@ -85,8 +85,16 @@ std::string to_string(GF* a) {
 
 // EC1 Methods
 
-Ec1* new_ec1() {
+Ec1 * new_ec1() {
   Ec1 * a = new Ec1();
+  return a;
+}
+
+Ec1* new_ec1(const char * p0_str, const char * p1_str, const char * p2_str) {
+  Fp p0(p0_str);
+  Fp p1(p1_str);
+  Fp p2(p2_str);
+  Ec1 * a = new Ec1(p0, p1, p2);
   return a;
 }
 
@@ -114,10 +122,30 @@ bool eq(Ec1 *a, Ec1 * b) {
   return *a == *b;
 }
 
+std::string to_string(Ec1* a) {
+  return (a->p[0].toString() + "," +
+	  a->p[1].toString() + "," +
+	  a->p[2].toString());
+}
+
 // EC2 Methods
 
 Ec2 * new_ec2() {
   Ec2 * a = new Ec2();
+  return a;
+}
+
+Ec2 * new_ec2(std::string p0a_str,
+	      std::string p0b_str,
+	      std::string p1a_str,
+	      std::string p1b_str,
+	      std::string p2a_str,
+	      std::string p2b_str) {
+
+  Ec2 * a = new Ec2 (Fp2(Fp(p0a_str), Fp(p0b_str)),
+		     Fp2(Fp(p1a_str), Fp(p1b_str)),
+		     Fp2(Fp(p2a_str), Fp(p2b_str)));
+  
   return a;
 }
 
@@ -143,6 +171,16 @@ void smul(Ec2* a, Ec2* b, GF* c) {
 
 bool eq(Ec2 *a, Ec2 * b) {
   return *a == *b;
+}
+
+std::string to_string(Ec2* a) {
+  return (a->p[0].a_.toString() + "," +
+	  a->p[0].b_.toString() + "," +
+	  a->p[1].a_.toString() + "," +
+	  a->p[1].b_.toString() + "," +
+	  a->p[2].a_.toString() + "," +
+	  a->p[2].b_.toString());
+	  
 }
 
 // EC12

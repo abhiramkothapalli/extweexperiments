@@ -9,14 +9,14 @@ order = int(get_order())
 
 class GF(object):
 
-    def __init__(self, n):
+    def __init__(self, n='0'):
         if isinstance(n, str):
             self.n = new_gf(str(int(n) % order))
         elif isinstance(n, int):
             self.n = new_gf(str(n % order))
         else:
             # Assume its a swig pointer
-            # TODO fix this
+            # TODO this needs to be more robust
             self.n = n
 
     def __add__(self, o):
@@ -90,8 +90,19 @@ class GF(object):
     def __str__(self):
         return str(to_string(self.n))
 
+    def __getstate__(self):
+        return to_string(self.n)
+
+    def __setstate__(self, s):
+        n = new_gf(s)
+        self.n = n
+    
     def __del__(self):
-        free(self.n)
+        try:
+            free(self.n)
+        except:
+            pass
+
 
 def sampleGF():
     return GF(random.randint(0, order))
@@ -104,6 +115,7 @@ class EC(object):
     def __eq__(self, o):
         return eq(self.n, o.n)
 
+
     def __str__(self):
         return str(to_string(self.n))
     
@@ -111,7 +123,12 @@ class EC(object):
         return repr(self.n)
 
     def __del__(self):
-         free(self.n)
+        try:
+            free(self.n)
+        except:
+            pass
+
+
     
 
 class EC1(EC):
@@ -151,7 +168,17 @@ class EC1(EC):
             raise NotImplementedError
 
 
+    def __getstate__(self):
+        return to_string(self.n).split(',')
 
+    def __setstate__(self, s):
+        n = new_ec1(s[0], s[1], s[2])
+        
+        self.n = n
+
+
+
+        
 
 class EC2(EC):
 
@@ -190,6 +217,13 @@ class EC2(EC):
         else:
             raise NotImplementedError
 
+    def __getstate__(self):
+        return to_string(self.n).split(',')
+
+    def __setstate__(self, s):
+        n = new_ec2(s[0], s[1], s[2], s[3], s[4], s[5])
+        self.n = n
+
 
 class EC12(EC):
 
@@ -210,7 +244,6 @@ def pair(a, b):
     return EC12(e)
 
 if __name__ == '__main__':
-
 
 
     '''Field'''
@@ -278,6 +311,25 @@ if __name__ == '__main__':
     assert p1 == p2
     assert p3 == p4
     assert p1 * p3 == p2 * p4
+
+    # Printing tests
+    print('g1: ' + str(g1))
+    a = g1
+    a_state = a.__getstate__()
+    b = EC1(None)
+    b.__setstate__(a_state)
+    print(b)
+    assert a == b
+
+
+    print('g2: ' + str(g2))
+    a = g2
+    a_state = a.__getstate__()
+    b = EC2(None)
+    b.__setstate__(a_state)
+    print(b)
+    assert a == b
+    #print(p1)
 
 
     

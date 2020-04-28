@@ -4,7 +4,7 @@
 
 from polynomial import samplePoly
 from interpolation import interpolate
-from gfec import GF, sampleGF
+from gfec import GF, EC1, sampleGF
 import kzg
 
 def eval_points(n):
@@ -80,6 +80,25 @@ class Proof():
 
     def __str__(self):
         return str((self.i, self.u, self.v, self.w))
+
+    def __getstate__(self):
+        return (self.i.__getstate__(),
+                self.u.__getstate__(),
+                self.v.__getstate__(),
+                self.w.__getstate__())
+
+
+    def __setstate__(self, s):
+        self.i = GF()
+        self.u = GF()
+        self.v = GF()
+        self.w = EC1(None) # TODO: Are there any proofs with EC2?
+
+        self.i.__setstate__(s[0])
+        self.u.__setstate__(s[1])
+        self.v.__setstate__(s[2])
+        self.w.__setstate__(s[3])
+        
         
 
 def setup(n, t):
@@ -154,22 +173,6 @@ def reconstruct_full(pk, shares):
 
     ss, C = shares
     t = pk['t']
-
-    # ''' Simple check '''
-
-    # X = [s.i for s in ss]
-    # Yu = [s.u for s in ss]
-    # Yv = [s.v for s in ss]
-
-
-    # Pu, Pv = interpolate(X, [Yu, Yv])
-
-    # # If all points lie on same polynomial
-    # # by honest majority property, we know
-    # # shares are correct without having to
-    # # check proof of correct evaluation.
-    # if Pu.deg() <= t and Pv.deg() <= t:
-    #     return Pu(GF(0)), Pv(GF(0)), Pu, Pv
 
     ''' Hard check if simple check fails '''
 

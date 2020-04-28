@@ -15,7 +15,7 @@ class Client(Wrapper):
         rss = []
         coms = []
         for share in shares:
-            rs, com = self.unwrap(share.value)
+            rs, com = share.value
             rss += [rs]
             coms +=[com]
 
@@ -23,7 +23,7 @@ class Client(Wrapper):
         sr, zu = dpss.share(self.pk, (rss, com), secret)
 
         for n in self.old_nodes:
-            n.handle_share_response(self.wrap((sr, zu)))
+            n.handle_share_response((sr, zu))
 
     @Pyro4.expose
     def reconstruct(self):
@@ -32,7 +32,7 @@ class Client(Wrapper):
         ss = []
         coms = []
         for share in shares:
-            s, com = self.unwrap(share.value)
+            s, com = share.value
             ss += [s]
             coms += [com]
 

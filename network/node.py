@@ -125,11 +125,11 @@ class Node(Wrapper):
     @Pyro4.expose
     @distribute
     def setup_distribution(self, u):
-        
+
         ss, C = dpss.setup_dist(self.pk)
         gss, gC = dpss.setup_dist(self.pk)
 
-        shares = [self.wrap((ss[i], C, gss[i], gC)) for i in range(self.n)]
+        shares = [(ss[i], C, gss[i], gC) for i in range(self.n)]
 
         return [shares]
 
@@ -150,7 +150,7 @@ class Node(Wrapper):
         gcoms = []
 
         for res in request_results:
-            s, C, gs, gC = self.unwrap(res.value)
+            s, C, gs, gC = res.value
             ss += [s]
             coms += [C]
             gss += [gs]
@@ -162,14 +162,15 @@ class Node(Wrapper):
         self.coms = coms
         self.ncom = ncom
 
-        return self.wrap(ns)
+        return ns
 
 
     @Pyro4.expose
     def generate_setup_randomness(self):
+
         
         request_nss = [n.setup_distribution_verification() for n in self.old_nodes]
-        nss = [self.unwrap(fnss.value) for fnss in request_nss]
+        nss = [fnss.value for fnss in request_nss]
         ncom = self.ncom
 
         assert dpss.setup_verification_check(self.pk, nss, ncom)
@@ -195,8 +196,8 @@ class Node(Wrapper):
         sst, Ct = sstCt
         gsst, gCt = gsstCt
 
-        old_msgs = [self.wrap((ss[i], C, Ct, gss[i], gC, gCt)) for i in range(self.n)]
-        new_msgs = [self.wrap((sst[i], Ct, C, gsst[i], gCt, gC)) for i in range(self.n)]
+        old_msgs = [(ss[i], C, Ct, gss[i], gC, gCt) for i in range(self.n)]
+        new_msgs = [(sst[i], Ct, C, gsst[i], gCt, gC) for i in range(self.n)]
 
         return [old_msgs, new_msgs]
 
@@ -214,7 +215,7 @@ class Node(Wrapper):
         gCso = []
 
         for msg in request_msgs:
-            s, C, Co, gs, gC, gCo = self.unwrap(msg.value)
+            s, C, Co, gs, gC, gCo = msg.value
             ss += [s]
             Cs += [C]
             Cso += [Co]
@@ -238,15 +239,15 @@ class Node(Wrapper):
         self.Cs = Cs
         self.Cso = Cso
 
-        return self.wrap(ns)
+        return ns
 
     def distribution_verification_2(self):
 
         request_onss = [n.distribution_verification_1() for n in self.old_nodes]
         request_nnss = [n.distribution_verification_1() for n in self.new_nodes]
 
-        onss = [self.unwrap(s.value) for s in request_onss]
-        nnss = [self.unwrap(s.value) for s in request_nnss]
+        onss = [s.value for s in request_onss]
+        nnss = [s.value for s in request_nnss]
 
         ncom = self.ncom
         ncomt = self.ncomt
@@ -282,13 +283,13 @@ class Node(Wrapper):
         self.rs = rs
         self.com = com
 
-        return self.wrap((rs, com))
+        return (rs, com)
 
 
     @Pyro4.expose
     def handle_share_response(self, srzu):
 
-        s, r = self.unwrap(srzu)
+        s, r = srzu
         share, com = dpss.setup_fresh_parties(self.pk, s, r, self.rs, self.com)
 
         self.share = share
@@ -314,7 +315,7 @@ class Node(Wrapper):
 
         share, com = dpss.refresh_preprocessing(self.share, self.com, rs, rcom)
 
-        return self.wrap(share)
+        return share
 
 
 
@@ -323,12 +324,12 @@ class Node(Wrapper):
     def refresh_reconstruct(self):
 
         request_shares = [n.release_share() for n in self.old_nodes]
-        shares = [self.unwrap(s.value) for s in request_shares]
+        shares = [s.value for s in request_shares]
 
         kcom = self.com + self.rcom
         kpi = dpss.refresh_king(self.pk, shares, kcom)
 
-        return self.wrap((kpi, kcom))
+        return (kpi, kcom)
 
 
     @Pyro4.expose
@@ -341,7 +342,7 @@ class Node(Wrapper):
 
         # Get material from king
         king = self.get_king()
-        ks, kcom = self.unwrap(king.refresh_reconstruct())
+        ks, kcom = king.refresh_reconstruct()
 
         # Retrieve refresh randomness from storage.
 
@@ -366,7 +367,7 @@ class Node(Wrapper):
         if not self.share:
             raise Exception('Node ' + str(self.u) + ' does not have requested share')
         else:
-            return self.wrap((self.share, self.com))
+            return (self.share, self.com)
 
         
 if __name__ == '__main__':

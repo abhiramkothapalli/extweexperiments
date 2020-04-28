@@ -41,6 +41,7 @@ std::string to_string(GF* a);
 // EC1 Methods
 
 Ec1* new_ec1();
+Ec1* new_ec1(const char * p0_str, const char * p1_str, const char * p2_str);
 
 void free(Ec1* a);
 
@@ -54,9 +55,18 @@ void smul(Ec1* a, Ec1* b, GF* c);
 
 bool eq(Ec1 *a, Ec1 * b);
 
+std::string to_string(Ec1* a);
+
 // EC2 Methods
 
 Ec2* new_ec2();
+
+Ec2 * new_ec2(std::string p0a_str,
+	      std::string p0b_str,
+	      std::string p1a_str,
+	      std::string p1b_str,
+	      std::string p2a_str,
+	      std::string p2b_str);
 
 void free(Ec2* a);
 
@@ -69,6 +79,8 @@ void sub(Ec2* a, Ec2*b, Ec2* c);
 void smul(Ec2* a, Ec2* b, GF* c);
 
 bool eq(Ec2 *a, Ec2 * b);
+
+std::string to_string(Ec2* a);
 
 // EC12
 

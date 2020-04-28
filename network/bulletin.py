@@ -6,13 +6,14 @@ from node import Node
 from client import Client
 import dpss
 import time
-from gfec import sampleGF
-import pickle
+from gfec import sampleGF, g1, g2
 import params
 import os
 import create_network
 import timeit
 
+
+sys.excepthook = Pyro4.util.excepthook
 
 def timer(func):
     def wrapper(*args, **kwargs):
@@ -22,20 +23,12 @@ def timer(func):
         return result
     return wrapper
 
-def wrap(m):
-    c = pickle.dumps(m, protocol=0).decode('utf-8')
-    return c
-
-def unwrap(c):
-    m = pickle.loads(c.encode('utf-8'))
-    return m
-
 def create_client(n, pk, NSHOST, NSPORT):
 
     ''' Create a client '''
 
     client = Client(None, NSHOST, NSPORT)
-    client.initalize(wrap((n, pk)))
+    client.initalize((n, pk))
     return client
 
 @timer
@@ -75,7 +68,7 @@ def get_nodes(n, pk):
 
     ''' Setup Environment '''
 
-    request_inits = [node.initalize(wrap((n, pk))) for node in nodes + new_nodes]
+    request_inits = [node.initalize((n, pk)) for node in nodes + new_nodes]
     [r.wait() for r in request_inits]
 
     return nodes, new_nodes
@@ -92,17 +85,20 @@ def run_experiment(n, t, pk):
 
     nodes, new_nodes = get_nodes(n, pk)
 
+    
     ''' Setup '''
 
     setup_randomness_time = generate_setup_randomness(nodes, new_nodes)
     refresh_randomness_time = generate_refresh_randomness(nodes, new_nodes)
+
 
     ''' Share '''
 
     client = create_client(n, pk, params.NSHOST, params.NSPORT)
     secret = sampleGF()
     client_share_time = client_share(client, secret)
-    
+
+
     ''' Refresh '''
 
     refresh_time = refresh(nodes, new_nodes)

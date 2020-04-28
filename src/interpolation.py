@@ -6,7 +6,7 @@ import numpy as np
 from gfec import GF, sampleGF
 from polynomial import Polynomial, samplePoly
 
-
+np.seterr(all='ignore')
 
 def derivative(P):
 
