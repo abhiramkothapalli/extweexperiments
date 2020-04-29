@@ -1,4 +1,4 @@
-//#include "gfeccore.h"
+#include "gfeccore.h"
 #include "bn.h"
 #include "zm.h"
 #include "test_point.hpp"
