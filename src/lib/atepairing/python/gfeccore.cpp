@@ -1,14 +1,17 @@
 #include "gfeccore.h"
 
+
 #include "bn.h"
 #include "zm.h"
 #include "test_point.hpp"
 #include <iostream>
+#include <string>
 
 using namespace mie;
 using namespace bn;
 
 typedef ZmZ<Vuint, Vuint> GF;
+
 
 // Global Generators
 Ec1* g1 = NULL;

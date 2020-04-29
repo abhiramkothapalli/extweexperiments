@@ -3,5 +3,4 @@
 %{
 #include "gfeccore.h"
 %}
-
 %include "gfeccore.h"
