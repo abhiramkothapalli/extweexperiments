@@ -1,11 +1,7 @@
-#include "gfeccore.h"
-
-
+//#include "gfeccore.h"
 #include "bn.h"
 #include "zm.h"
 #include "test_point.hpp"
-#include <iostream>
-#include <string>
 
 using namespace mie;
 using namespace bn;
@@ -209,7 +205,7 @@ bool eq(Fp12 * a, Fp12 * b) {
   return *a == *b;
 }
 
-#ifdef CPP
+//#ifdef CPP
 int main(int argc, char *argv[]) {
   setup();
   GF* a = new_gf("2");
@@ -227,4 +223,4 @@ int main(int argc, char *argv[]) {
   free(b);
   free(c);
 }
-#endif // CPP
+//#endif // CPP
