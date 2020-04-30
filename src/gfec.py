@@ -136,7 +136,7 @@ class EC1(EC):
 
     def __mul__(self, o):
         if isinstance(o, GF):
-            e = new_ec1('0', '0', '0')
+            e = new_ec1()
             smul(e, self.n, o.n)
             return EC1(e)
         elif isinstance(o, int):
@@ -154,7 +154,7 @@ class EC1(EC):
 
     def __add__(self, o):
         if isinstance(o, EC1):
-            e = new_ec1('0', '0', '0')
+            e = new_ec1()
             add(e, self.n, o.n)
             return EC1(e)
         else:
