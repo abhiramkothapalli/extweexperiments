@@ -26,7 +26,8 @@ class GF(object):
             return GF(n)
         elif isinstance(o, int):
             n = new_gf('0')
-            add(n, self.n, GF(o).n)
+            t = GF(o)
+            add(n, self.n, t.n)
             return GF(n)
         else:
             raise NotImplementedError
@@ -40,7 +41,8 @@ class GF(object):
             return GF(n)
         elif isinstance(o, int):
             n = new_gf('0')
-            sub(n, self.n, GF(o).n)
+            t = GF(o)
+            sub(n, self.n, t.n)
             return GF(n)
         else:
             raise NotImplementedError
@@ -52,7 +54,8 @@ class GF(object):
             return GF(n)
         elif isinstance(o, int):
             n = new_gf('0')
-            mul(n, self.n, GF(o).n)
+            t = GF(o)
+            mul(n, self.n, t.n)
             return GF(n)
         else:
             raise NotImplementedError
@@ -66,7 +69,8 @@ class GF(object):
             return GF(n)
         elif isinstance(o, int):
             n = new_gf('0')
-            div(n, self.n, GF(o).n)
+            t = GF(o)
+            div(n, self.n, n)
             return GF(n)
         else:
             raise NotImplementedError
@@ -97,11 +101,11 @@ class GF(object):
         n = new_gf(s)
         self.n = n
     
-    # def __del__(self):
-    #     try:
-    #         remove(self.n)
-    #     except:
-    #         pass
+    def __del__(self):
+        try:
+            remove(self.n)
+        except:
+            pass
 
 
 def sampleGF():
@@ -122,12 +126,11 @@ class EC(object):
     def __repr__(self):
         return repr(self.n)
 
-    # def __del__(self):
-    #     try:
-    #         remove(self.n)
-    #         pass
-    #     except:
-    #         pass
+    def __del__(self):
+        try:
+            remove(self.n)
+        except:
+            pass
 
 
     
@@ -141,7 +144,8 @@ class EC1(EC):
             return EC1(e)
         elif isinstance(o, int):
             e = new_ec1()
-            smul(e, self.n, GF(o).n)
+            t = GF(o)
+            smul(e, self.n, t.n)
             return EC1(e)
         elif isinstance(o, EC2):
             e = new_fp12()
@@ -190,7 +194,8 @@ class EC2(EC):
             return EC2(e)
         elif isinstance(o, int):
             e = new_ec2()
-            smul(e, self.n, GF(o).n)
+            t = GF(o)
+            smul(e, self.n, n)
             return EC2(e)
         elif isinstance(o, EC1):
             e = new_fp12()
