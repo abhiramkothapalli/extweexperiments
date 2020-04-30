@@ -18,13 +18,6 @@ class Wrapper():
     def flush(self):
         return None
 
-    def get_node(self, u):
-
-        with Pyro4.locateNS(host=self.NSHOST, port=self.NSPORT) as ns:
-            uri = ns.lookup(str(u[0]) + str(u[1]))
-            node = Pyro4.Proxy(uri)
-            return node
-
     def setup_network(self, NSHOST, NSPORT):
 
         with Pyro4.locateNS(host=NSHOST, port=NSPORT) as ns:
@@ -42,7 +35,7 @@ class Wrapper():
 
             for nodes in old_nodes + new_nodes:
                 nodes._pyroAsync()
-
+                    
             return old_nodes, new_nodes
 
 

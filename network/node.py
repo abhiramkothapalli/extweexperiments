@@ -301,8 +301,8 @@ class Node(Wrapper):
 
     def get_king(self):
         # CONFIGURE: In practice, the king will change each round.
-        return self.get_node((0, 0))
-        #return self.old_nodes[0]
+        return self.old_nodes[0]
+
 
     @Pyro4.expose
     @cache
@@ -342,7 +342,7 @@ class Node(Wrapper):
 
         # Get material from king
         king = self.get_king()
-        ks, kcom = king.refresh_reconstruct()
+        ks, kcom = king.refresh_reconstruct().value
 
         # Retrieve refresh randomness from storage.
 
