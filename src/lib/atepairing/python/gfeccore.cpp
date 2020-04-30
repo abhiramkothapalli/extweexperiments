@@ -46,7 +46,7 @@ GF* new_gf(const char * n) {
   return a;
 }
 
-void free(GF* a) {
+void remove(GF* a) {
   delete a;
 }
 
@@ -93,11 +93,12 @@ Ec1* new_ec1(const char * p0_str, const char * p1_str, const char * p2_str) {
   Fp p0(p0_str);
   Fp p1(p1_str);
   Fp p2(p2_str);
+
   Ec1 * a = new Ec1(p0, p1, p2);
   return a;
 }
 
-void free(Ec1* a) {
+void remove(Ec1* a) {
   delete a;
 }
 
@@ -148,7 +149,7 @@ Ec2 * new_ec2(std::string p0a_str,
   return a;
 }
 
-void free(Ec2* a) {
+void remove(Ec2* a) {
   delete a;
 }
 
@@ -189,7 +190,7 @@ Fp12 * new_fp12() {
   return a;
 }
 
-void free(Fp12* a) {
+void remove(Fp12* a) {
   delete a;
 }
 
@@ -205,12 +206,14 @@ bool eq(Fp12 * a, Fp12 * b) {
   return *a == *b;
 }
 
-//#ifdef CPP
+#ifdef CPP
 int main(int argc, char *argv[]) {
   setup();
   GF* a = new_gf("2");
   GF* b = new_gf("3");
   GF* c = new_gf("0");
+
+  std::cout << to_string(a) << std::endl;
 
   std::cout << to_string(a) << std::endl;
   std::cout << to_string(b) << std::endl;
@@ -219,8 +222,17 @@ int main(int argc, char *argv[]) {
   add(c, a, b);
 
   std::cout << to_string(c) << std::endl;
-  free(a);
-  free(b);
-  free(c);
+  remove(a);
+  remove(b);
+  remove(c);
+
+  Ec1 * A = new_ec1();
+
+  add(A, g1, g1);
+  smul(A, g1, new_gf("2"));
+
+  std::cout << to_string(A) << std::endl;
+
+  
 }
-//#endif // CPP
+#endif // CPP

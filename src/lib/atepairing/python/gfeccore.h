@@ -21,7 +21,7 @@ std::string get_order();
 
 GF* new_gf(const char* n);
 
-void free(GF* a);
+void remove(GF* a);
 
 void add(GF* a, GF* b, GF* c);
 
@@ -44,7 +44,7 @@ std::string to_string(GF* a);
 Ec1* new_ec1();
 Ec1* new_ec1(const char * p0_str, const char * p1_str, const char * p2_str);
 
-void free(Ec1* a);
+void remove(Ec1* a);
 
 Ec1* get_g1();
 
@@ -69,7 +69,7 @@ Ec2 * new_ec2(std::string p0a_str,
 	      std::string p2a_str,
 	      std::string p2b_str);
 
-void free(Ec2* a);
+void remove(Ec2* a);
 
 Ec2* get_g2();
 
@@ -87,7 +87,7 @@ std::string to_string(Ec2* a);
 
 Fp12 * new_fp12();
 
-void free(Fp12* a);
+void remove(Fp12* a);
 
 void pairing(Fp12 * a, Ec1 * b, Ec2 * c);
 

@@ -97,11 +97,11 @@ class GF(object):
         n = new_gf(s)
         self.n = n
     
-    def __del__(self):
-        try:
-            free(self.n)
-        except:
-            pass
+    # def __del__(self):
+    #     try:
+    #         remove(self.n)
+    #     except:
+    #         pass
 
 
 def sampleGF():
@@ -122,11 +122,12 @@ class EC(object):
     def __repr__(self):
         return repr(self.n)
 
-    def __del__(self):
-        try:
-            free(self.n)
-        except:
-            pass
+    # def __del__(self):
+    #     try:
+    #         remove(self.n)
+    #         pass
+    #     except:
+    #         pass
 
 
     
@@ -135,7 +136,7 @@ class EC1(EC):
 
     def __mul__(self, o):
         if isinstance(o, GF):
-            e = new_ec1()
+            e = new_ec1('0', '0', '0')
             smul(e, self.n, o.n)
             return EC1(e)
         elif isinstance(o, int):
@@ -153,7 +154,7 @@ class EC1(EC):
 
     def __add__(self, o):
         if isinstance(o, EC1):
-            e = new_ec1()
+            e = new_ec1('0', '0', '0')
             add(e, self.n, o.n)
             return EC1(e)
         else:
@@ -244,6 +245,7 @@ def pair(a, b):
     return EC12(e)
 
 if __name__ == '__main__':
+
 
 
     '''Field'''
