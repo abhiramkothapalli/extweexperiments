@@ -307,7 +307,7 @@ class Node(Wrapper):
     @Pyro4.expose
     @cache
     def release_share(self):
-        
+
         # Refresh Randomness
         rs = self.refresh_shares.pop(0)
         rcom = self.old_refresh_coms.pop(0)
@@ -335,6 +335,8 @@ class Node(Wrapper):
     @Pyro4.expose
     def refresh(self):
 
+        king = self.get_king()
+
         # If no setup randomness available
         # then generate more.
         if not self.refresh_shares:
@@ -356,13 +358,38 @@ class Node(Wrapper):
         self.com = new_com
 
 
+    @Pyro4.expose
+    @cache
+    def dummy_release_share(self):
+        return 'done'
+
+    @Pyro4.expose
+    @cache
+    def dummy_refresh_reconstruct(self):
+        request_shares = [n.release_share() for n in self.old_nodes]
+        shares = [s.value for s in request_shares]
+        return 'done'
+
+    @Pyro4.expose
+    def dummy_refresh(self):
+        king = self.get_king()
+        # Get material from king
+        king = self.get_king()
+        result = king.refresh_reconstruct().value
+        return result
+
+    @Pyro4.expose
+    def ping(self, data):
+        return 'pong'
+
+
 
     ''' Reconstruct '''
 
 
     @Pyro4.expose
     def get_share(self):
-        # TODO this should only be visible to client
+        # CONFIGURE this should only be visible to client
 
         if not self.share:
             raise Exception('Node ' + str(self.u) + ' does not have requested share')

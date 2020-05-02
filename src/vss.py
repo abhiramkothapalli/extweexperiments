@@ -197,7 +197,7 @@ def reconstruct_full(pk, shares):
 if __name__ == '__main__':
 
     # Pick standard threshold.
-    n = 128
+    n = 64
     t = int(n/2)
 
     pk = setup(n, t)

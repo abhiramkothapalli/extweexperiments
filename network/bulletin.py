@@ -53,7 +53,7 @@ def refresh(nodes, new_nodes):
 
     ''' Refresh '''
 
-    results = [n.refresh() for n in new_nodes]
+    results = [n.dummy_refresh() for n in new_nodes]
     [r.wait() for r in results]
 
 
@@ -81,6 +81,11 @@ def client_share(client, secret):
 def client_reconstruct(client):
     client.reconstruct()
 
+@timer
+def ping(nodes, new_nodes):
+    result = nodes[0].ping(g1).value
+    return None
+
 def run_experiment(n, t, pk):
 
     nodes, new_nodes = get_nodes(n, pk)
@@ -102,6 +107,11 @@ def run_experiment(n, t, pk):
     ''' Refresh '''
 
     refresh_time = refresh(nodes, new_nodes)
+
+    print('Refresh Time: ' + str(refresh_time))
+    print('Ping Time: ' + str(ping(nodes, new_nodes)))
+
+    exit()
 
     ''' Reconstruct '''
 

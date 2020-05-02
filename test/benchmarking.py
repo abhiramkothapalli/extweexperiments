@@ -2,6 +2,9 @@
 
 ''' benchmarking.py benchmarks various dpss routines '''
 
+import sys
+sys.path.append('../src/')
+
 import time
 
 #import dpss
@@ -13,180 +16,9 @@ from polynomial import samplePoly
 from interpolation import interpolate
 import polynomial
 
-runs = 1
+tracefile = 'tracefile.txt'
 
-
-def timer(func):
-    """
-    A timer decorator
-    """
-    def wrapper(*args, **kwargs):
-        """
-        A nested function for timing other functions
-        """
-        res = None
-        runtimes = []
-        for r in range(0, runs):
-            start = time.time()
-            res = func(*args, **kwargs) # Take last result
-            end = time.time()
-            runtimes += [end - start]
-        
-        avg = sum(runtimes) / len(runtimes)
-        #print(str(func.__name__) + ': ' + str(avg))
-        return avg, res
-    return wrapper
-
-''' DPSS Benchmarks '''
-
-@timer
-def run_setup(n, t):
-
-    return dpss.setup(n, t)
-
-@timer
-def run_share(pk, ek, s):
-
-    return dpss.share(pk, ek, s)
-
-@timer
-def run_refresh():
-
-    return None
-
-def run_refresh_king():
-
-    return None
-    
-
-@timer
-def run_reconstruct(pk, shares):
-
-    return dpss.reconstruct(pk, shares)
-
-@timer
-def run_output(pk, ps, cs):
-
-    return dpss._output(pk, ps, cs)
-
-@timer
-def run_verification_dist(ss, coms, gss, gcoms, c):
-
-    return dpss._verification_dist(ss, coms, gss, gcoms, c)
-
-@timer
-def run_check_commit(pk, ss, com):
-
-    return dpss._check_commit(pk, ss, com)
-
-@timer
-def run_kzg_commit(pk, f):
-
-    return kzg.commit(pk, f)
-
-@timer
-def run_kzg_open_eval(pk, f, u, r):
-
-    return kzg.open_eval(pk, f, u, r)
-
-@timer
-def run_kzg_verify_eval(pk, com, pi):
-    
-    return kzg.verify_eval(pk, com, pi)
-
-''' Polynomial Benchmarks'''
-
-@timer
-def run_polynomial_interpolation(X, Y):
-
-    return polynomial.interpolate(X, Y)
-
-
-''' Micro Benchmarks'''
-
-@timer
-def gf_add(a, b):
-    return a + b
-
-@timer
-def gf_multiply(a, b):
-    return a * b
-
-@timer
-def gf_div(a, b):
-    return a / b
-
-@timer
-def ec_add(A, B):
-    return A + B
-
-@timer
-def ec_scalar_mult(a, B):
-    return B * a
-
-@timer
-def ec_pair(A, B):
-    return pair(A, B)
-
-@timer
-def ec2_add(A, B):
-    return A + B
-
-@timer
-def ec2_scalar_mult(a, B):
-    return B * a
-
-
-def benchmark_dpss(n, t):
-
-    runtimes = []
-
-    # Benchmark setup
-    runtime, pk = run_setup(n, t)
-    kvss, kcom, V = pk
-    runtimes += [runtime]
-
-    # Create partial shares
-    sss = [vss.share((kvss, kcom)) for i in range(0, n)]
-    ps = [e[0][0] for e in sss]
-    cs = [e[1] for e in sss]
-
-    gsss = [vss.share((kvss, kcom)) for i in range(0, n)]
-    gps = [e[0][0] for e in gsss]
-    gcs = [e[1] for e in gsss]
-
-    # Create Challenge
-    ch = sampleGF()
-
-    # Benchmark sharing
-    ss, C = vss.share((kvss, kcom)) # Create random session key
-    secret = sampleGF()
-
-    runtime, res = run_share(pk, (ss, C), secret)
-    runtimes += [runtime]
-
-    # Benchmark reconstruction
-    shares = vss.share((kvss, kcom))
-    runtime, res = run_reconstruct(pk, shares)
-    runtimes += [runtime]
-
-    # Benchmark output
-    runtime, res = run_output(pk, ps, cs)
-    runtimes += [runtime]
-
-    # Benchmark verification_dist (_verification_dist)
-    runtime, res = run_verification_dist(ps, cs, gps, gcs, ch)
-    runtimes += [runtime]
-
-    # Benchmark Commit Check (_check_commit)
-    runtime, res = run_check_commit(pk, ss, C)
-    runtimes += [runtime]
-    
-
-    return runtimes
-
-
-def new_timer(func, runtimes, key):
+def timer(func, runtimes, key):
     """
     A timer decorator
     """
@@ -196,9 +28,9 @@ def new_timer(func, runtimes, key):
         """
         res = None
 
-        start = time.time()
+        start = time.process_time()
         res = func(*args, **kwargs) # Take last result
-        end = time.time()
+        end = time.process_time()
         
         runtime = end - start
 
@@ -208,29 +40,15 @@ def new_timer(func, runtimes, key):
         runtimes[key] += [runtime]
 
         print(key + ': ' + str(runtime))
+        open(tracefile, 'a+').write(str(key) + ', ' + str(runtime) + '\n')
         return res
     return wrapper
 
-def benchmark_reconstruct(n, t):
-
-    runtimes = {}
-    T = lambda func, key: new_timer(func, runtimes, key)
-
-    kvss = vss.setup(n, t)
-
-    # Benchmark reconstruction
-    shares = vss.share(kvss)
-    res = T(vss.reconstruct_full, 'reconstruct')(kvss, shares)
-
-    return runtimes['reconstruct']
-
-    
-
-def run_dpss_full(n, t):
+def run_dpss(n, t):
 
 
     runtimes = {}
-    T = lambda func, key: new_timer(func, runtimes, key)
+    T = lambda func, key: timer(func, runtimes, key)
 
     ''' Setup '''
 
@@ -241,7 +59,6 @@ def run_dpss_full(n, t):
     ''' Create Session Key '''
 
     # Each party computes verified shares.
-    #sss = [T(setup_dist, (pk)) for i in range(0, n)]
     sss = [T(setup_dist, 'setup_distribution')(pk) for i in range(0, n)]
 
     # TODO: Each party must verify received shares
@@ -262,25 +79,6 @@ def run_dpss_full(n, t):
     for i in range(0, n):
         assert T(setup_verification_check, 'setup_distribution_verification_3')(pk, nss, ncoms[i])
 
-
-    # # Single verify the setup distribution
-    # c = sampleGF()
-    # for i in range(0, n):
-    #     nss = []
-    #     ncoms = []
-    #     for j in range(0, n):
-    #         s = sss[i][0][j]
-    #         com = sss[i][1]
-    #         gs = gsss[i][0][j]
-    #         gcom = gsss[i][1]
-    #         # TODO: this measures time to check single party, in practice its * n
-    #         ns, ncom = T(setup_single_veri_compute, 'setup_distibution_single_verification_1')(s, com, gs, gcom, c)
-    #         nss += [ns]
-    #         ncoms += [ncom]
-    #     for i in range(0, n):
-    #         assert T(setup_single_veri_check, 'setup_distribution_single_verification_2')(pk, nss, ncoms[i])
-
-
     # Each party aggregates verified shares.
     coms = [share[1] for share in sss]
     rss = []
@@ -290,7 +88,6 @@ def run_dpss_full(n, t):
         rs, rcoms = T(setup_output, 'setup_output')(pk, ss, coms)
         rss += [rs]
         rcomss += [rcoms]
-
 
 
     # Pick out a single session key
@@ -308,7 +105,6 @@ def run_dpss_full(n, t):
     # Extract commitments
     coms = [e[0][1] for e in sss]
     comst = [e[1][1] for e in sss]
-
 
     # Old parties aggregate shares
     orss = []
@@ -393,56 +189,6 @@ def run_dpss_full(n, t):
         assert T(verification_check, 'new_distribution_verification_2')(pk, onss, com, nnss, comt)
 
 
-    # # Single Verify the distribution.
-    # c = sampleGF()
-    # for i in range(0, n):
-    #     nss = []
-    #     oncoms = []
-    #     nncoms = []
-    #     nsst = []
-    #     oncomst = []
-    #     nncomst = []
-    #     for j in range(0, n):
-
-    #         s = sss[i][0][0][j]
-    #         com = sss[i][0][1]
-    #         gs = gsss[i][0][0][j]
-    #         gcom = gsss[i][0][1]
-
-    #         st = sss[i][1][0][j]
-    #         comt = sss[i][1][1]
-    #         gst = gsss[i][1][0][j]
-    #         gcomt = gsss[i][1][1]
-
-
-    #         # Old Committee
-    #         # TODO: All this is single time: in practice *n
-    #         ns, ncom, ncomt = T(single_veri_compute, 'old_distibution_single_verification_1')(s, com, gs, gcom, comt, gcomt, c)
-    #         nss += [ns]
-    #         oncoms += [ncom]
-    #         oncomst += [ncomt]
-
-    #         # New Committee
-    #         ns, ncomt, ncom = T(single_veri_compute, 'new_distribution_single_verification_1')(st, comt, gst, gcomt, com, gcom, c)
-    #         nsst += [ns]
-    #         nncoms += [ncom]
-    #         nncomst += [ncomt]
-
-    #     # Old Party Checks
-    #     for i in range(0, n):
-
-    #         ncom = oncoms[i]
-    #         ncomt = oncomst[i]
-    #         assert T(single_veri_check, 'old_distribution_single_verification_2')(pk, nss, ncom, nsst, ncomt)
-
-    #     # New Party Checks
-    #     for i in range(0, n):
-
-    #         ncom = nncoms[i]
-    #         ncomt = nncomst[i]
-    #         assert T(single_veri_check, 'new_distribution_single_verification_2')(pk, nss, ncom, nsst, ncomt)
-
-
     ''' Share '''
 
     # Sample random secret
@@ -489,48 +235,10 @@ def run_dpss_full(n, t):
     ''' Reconstruct '''
     ncom = ncoms[0]
     s = T(reconstruct, 'reconstruct')(pk, (nss, ncom))
+
+    # Sanity Check
     assert s == secret
-
-
     return runtimes
-
-    
-
-
-def benchmark_kzg(kt):
-
-    runtimes = []
-
-    kpk = kzg.setup(kt)[0]
-    f = samplePoly(kt + 1)
-
-    # Benchmark kzg commit
-    runtime, res = run_kzg_commit(kpk, f)
-    com, r = res
-    runtimes += [runtime]
-
-    # Benchmark kzg evaluation
-    u = sampleGF()
-    runtime, res = run_kzg_open_eval(kpk, f, u, r)
-    pi = res
-    runtimes += [runtime]
-
-    # Benchmark KZG verification
-    runtime, res = run_kzg_verify_eval(kpk, com, pi)
-    runtimes += [runtime]
-    assert res == True
-
-    return runtimes
-
-def benchmark_polynomial(d):
-
-
-    X = [sampleGF() for i in range(0, d + 1)]
-    Y = [sampleGF() for i in range(0, d + 1)]
-
-    runtime, res = run_polynomial_interpolation(X, Y)
-
-    return [runtime]
 
 def export(table, fname):
 
@@ -541,18 +249,12 @@ def export(table, fname):
             f.write(str(c) + ', ')
         f.write('\n')
 
-    
 
+def run_experiment(n):
 
+    t = int(n/2)
 
-if __name__ == '__main__':
-
-    n = 64
-    t = 32
-
-    #runtime = benchmark_reconstruct(n, t)
-
-    runtimes = run_dpss_full(n, t)
+    runtimes = run_dpss(n, t)
 
     arts = {}
 
@@ -563,9 +265,6 @@ if __name__ == '__main__':
     nrts = {}
 
     nrts['setup'] = arts['setup']
-
-    # TODO: incorporate single verification
-    # TODO: note that this is for n - t randomness
 
     time_dist = arts['setup_distribution']
     time_dist_verification = arts['setup_distribution_verification_1'] + arts['setup_distribution_verification_2'] + arts['setup_distribution_verification_3']
@@ -587,116 +286,53 @@ if __name__ == '__main__':
 
     nrts['reconstruct'] = arts['reconstruct']
 
+    f = open(tracefile, 'a+')
 
-    print('TOTALS')
+    print('TOTALS: ' + str(n))
+    f.write('TOTALS: ' + str(n) + '\n')
+    
 
     for k in nrts:
         print(str(k) + ': ' + str(nrts[k]))
 
-    exit()
-    
 
-    
+    for k in nrts:
+        f.write(str(k) + ', ' + str(nrts[k]) + '\n')
+    f.close()
 
-    tns = [(2, 4), (4, 8), (8, 16), (16, 32), (32, 64)]
+    return nrts
 
-    ''' DPSS '''
-
-    dpss_table = [['setup'], ['share'], ['reconstruction'], ['output'], ['verification_dist'], ['check_commit']]
-
-    for tn in tns:
-        t, n = tn
-        runtimes = benchmark_dpss(n, t)
-        for i in range(0, len(dpss_table)):
-            dpss_table[i] += [runtimes[i]]
-
-    print(dpss_table)
-
-    export(dpss_table, 'dpss_table.csv')
-
-
-    ''' KZG '''
-
-    kzg_table = [['commit'], ['evaluation'], ['verification']]
-
-    for tn in tns:
-        t, n = tn
-        runtimes = benchmark_kzg(t)
-        for i in range(0, len(kzg_table)):
-            kzg_table[i] += [runtimes[i]]
-
-    print(kzg_table)
-    export(kzg_table, 'kzg_table.csv')
-
-
-
-
-    ''' Polynomial '''
-
-    poly_table = [['interpolation']]
-
-    for tn in tns:
-        t, n = tn
-        runtimes = benchmark_polynomial(t)
-        for i in range(0, len(poly_table)):
-            poly_table[i] += [runtimes[i]]
-
-    print(poly_table)
-    export(poly_table, 'poly_table.csv')
-
-
-
-
-
-    ''' GFEC '''
-
-    gfec_table = []
-
-    a = sampleGF()
-    b = sampleGF()
-
-    runtime, res = gf_add(a, b)
-    gfec_table += [['f_add', runtime]]
-
-    
-    runtime, res = gf_multiply(a, b)
-    gfec_table += [['f_mul', runtime]]
-    
-    runtime, res = gf_div(a, b)
-    gfec_table += [['f_div', runtime]]
-
-    A = g1 * a
-    B = g1 * b
-    C = g2 * b
-
-    runtime, res = ec_add(A, B)
-    gfec_table += [['ec_add', runtime]]
-
-    runtime, res = ec_scalar_mult(a, B)
-    gfec_table += [['ec_smul', runtime]]
-
-
-    A = g2 * a
-    B = g2 * b
-
-    runtime, res = ec2_add(A, B)
-    gfec_table += [['ec2_add', runtime]]
-    
-    runtime, res = ec2_scalar_mult(a, B)
-    gfec_table += [['ec2_smul', runtime]]
-
-    A = g1 * a
-    runtime, res = ec_pair(A, C)
-    gfec_table += [['ec_pair', runtime]]
-
-    print(gfec_table)
-    export(gfec_table, 'gfec_table.csv')
 
 
     
 
+if __name__ == '__main__':
 
+    filename = 'benchmarking_results.txt'
+
+    N = [4, 8, 16] # CONFIGURE 
+    runs = 2
     
+
+    for n in N:
+
+        nrts = run_experiment(n)
+
+        f=open(filename, "a+")
+        f.write(str(n) + ', ')
+        f.write(str(nrts['setup']) + ', ')
+        f.write(str(nrts['setup_sharing_randomness']) + ', ')
+        f.write(str(nrts['old_setup_refresh_randomness']) + ', ')
+        f.write(str(nrts['new_setup_refresh_randomness']) + ', ')
+        f.write(str(nrts['client_share']) + ', ')
+        f.write(str(nrts['node_receive_share']) + ', ')
+        f.write(str(nrts['refresh']) + ', ')
+        f.write(str(nrts['refresh_king']) + ', ')
+        f.write(str(nrts['reconstruct']) + ', ')
+        f.write('\n')
+        f.close()
+        
+        
 
 
     
