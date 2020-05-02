@@ -1,11 +1,11 @@
 import dpss
 
 
-N = [8] # CONFIGURE
+N = [4, 8, 16, 32, 64] # CONFIGURE
 T = [int(n / 2) for n in N]
 R = 1 # CONFIGURE
 
-NSHOST = 'localhost' # CONFIGURE
+NSHOST = 'bulletin' # CONFIGURE
 NSPORT = 9090
 
 resultsfile = 'experiment_results.txt'
