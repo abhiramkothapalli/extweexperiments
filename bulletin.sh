@@ -17,6 +17,15 @@ echo "Building"
 sudo make
 
 echo "Starting Nameserver"
-cd network
-python3 nameserver.py
+#cd network
+#python3 nameserver.py
+
+echo "GRPC"
+cd grpc #/local/repository/grpc
+pip3 install --upgrade pip
+python3 -m pip install grpcio
+pip3 install grpcio-tools
+python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
+
+python3 bulletin.py -a "bulletin:50050" -k "node0:50050"
 

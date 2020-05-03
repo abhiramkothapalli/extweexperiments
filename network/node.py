@@ -357,32 +357,6 @@ class Node(Wrapper):
         self.share = new_share
         self.com = new_com
 
-
-    @Pyro4.expose
-    @cache
-    def dummy_release_share(self):
-        return 'done'
-
-    @Pyro4.expose
-    @cache
-    def dummy_refresh_reconstruct(self):
-        request_shares = [n.dummy_release_share() for n in self.old_nodes]
-        shares = [s.value for s in request_shares]
-        return 'done'
-
-    @Pyro4.expose
-    def dummy_refresh(self):
-        # Get material from king
-        king = self.get_king()
-        result = king.dummy_refresh_reconstruct().value
-        return result
-
-    @Pyro4.expose
-    def ping(self, data):
-        return 'pong'
-
-
-
     ''' Reconstruct '''
 
 

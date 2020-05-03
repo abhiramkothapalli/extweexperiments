@@ -28,20 +28,6 @@ bulletin = request.XenVM(NSHOST)
 
 ''' Networking '''
 
-# Link all nodes to each other
-# for n in range(0, M):
-#     for m in range(n + 1, M):
-#         request.Link(members=[nodes[n], nodes[m]])
-
-# for n in range(0, M):
-#     request.Link(members=[nodes[n], bulletin])
-
-# lan = request.LAN()
-
-# for n in nodes + [bulletin]:
-#     iface = node.addInterface("eth1")
-#     lan.addInterface(iface)
-
 
 request.Link(members=(nodes + [bulletin]))
 

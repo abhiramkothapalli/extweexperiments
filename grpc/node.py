@@ -4,7 +4,7 @@ import math
 import logging
 import argparse
 
-from addr_config import *
+#from addr_config import *
 
 import grpc
 
@@ -17,11 +17,11 @@ class NodeServicer(services_pb2_grpc.NodeServiceServicer):
         self.addr_config = addr_config
 
         # Establish connections to everyone else
-        channel = grpc.insecure_channel(addr_config.king_addr)
+        channel = grpc.insecure_channel(addr_config[0])
         self.king = services_pb2_grpc.NodeServiceStub(channel)
 
         self.old_nodes = []
-        for addr in addr_config.old_addrs:
+        for addr in addr_config[1]:
             channel = grpc.insecure_channel(addr)
             self.old_nodes.append(services_pb2_grpc.NodeServiceStub(channel))
       
@@ -107,13 +107,7 @@ if __name__ == '__main__':
     old_nodes = ['node' + str(n) + ':50050' for n in range(N)]
     new_nodes = ['node' + str(N + n) + ':50050' for n in range(N)]
 
-    print(old_nodes)
-    print(new_nodes)
-    print(args.king)
-    print(args.addr)
-    exit()
-
     #config = AddrConfig(args.king, args.old, args.new)
-    config = AddrConfig(args.king, old_nodes, new_nodes)
+    #config = AddrConfig(args.king, old_nodes, new_nodes)
 
-    serve(args.addr, config)
+    serve(args.addr, (args.king, old_nodes, new_nodes))
