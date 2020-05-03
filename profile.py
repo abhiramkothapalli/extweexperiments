@@ -61,8 +61,9 @@ for n in range(0, M):
     if n >= N:
         i = 1
     j = n % N
-    
-    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(i) + ' ' + str(j) + ' ' + nodehost  + ' ' +  NSHOST + ' ' + str(NSPORT) + '>> ' + output))
+
+    # TODO
+    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(n) + ' ' + str(j) + ' ' + nodehost  + ' ' +  NSHOST + ' ' + str(NSPORT) + '>> ' + output))
 
 # Bulletin Execute Scripts
 bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh" +  ' ' + NSHOST + ' ' + str(NSPORT) + '>> ' + output))

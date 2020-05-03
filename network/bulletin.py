@@ -53,7 +53,7 @@ def refresh(nodes, new_nodes):
 
     ''' Refresh '''
 
-    results = [n.refresh() for n in new_nodes]
+    results = [n.dummy_refresh() for n in new_nodes]
     [r.wait() for r in results]
 
 
@@ -107,6 +107,7 @@ def run_experiment(n, t, pk):
     ''' Refresh '''
 
     refresh_time = refresh(nodes, new_nodes)
+    exit()
 
     ''' Reconstruct '''
 

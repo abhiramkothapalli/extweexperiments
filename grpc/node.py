@@ -88,6 +88,9 @@ def serve(addr, config, loop=True):
         return server
 
 if __name__ == '__main__':
+
+    N = 64
+    
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="Node")
@@ -95,12 +98,22 @@ if __name__ == '__main__':
         help="This node's IP/hostname:port")
     parser.add_argument('-k', '--king', action='store', required=True, 
         help="The king's IP/hostname:port")
-    parser.add_argument('-o', '--old', action='append', required=True, 
-        help="An old committee IP/hostname:port")
-    parser.add_argument('-n', '--new', action='append', required=True, 
-        help="A new committee IP/hostname:port")
+    # parser.add_argument('-o', '--old', action='append', required=True, 
+    #     help="An old committee IP/hostname:port")
+    # parser.add_argument('-n', '--new', action='append', required=True, 
+    #     help="A new committee IP/hostname:port")
     args = parser.parse_args()
 
-    config = AddrConfig(args.king, args.old, args.new)
+    old_nodes = ['node' + str(n) + ':50050' for n in range(N)]
+    new_nodes = ['node' + str(N + n) + ':50050' for n in range(N)]
+
+    print(old_nodes)
+    print(new_nodes)
+    print(args.king)
+    print(args.addr)
+    exit()
+
+    #config = AddrConfig(args.king, args.old, args.new)
+    config = AddrConfig(args.king, old_nodes, new_nodes)
 
     serve(args.addr, config)

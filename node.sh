@@ -1,6 +1,6 @@
-cd /local/repository
+#cd /local/repository/
 
-echo "Installing Required Packages..."
+echo "Installing Required Packages"
 
 echo "Installing pip"
 sudo apt update
@@ -17,8 +17,20 @@ echo "Building"
 sudo make
 
 echo "Waiting for ns to start"
-sleep 600
+#sleep 600
 
-echo "Starting Node"
+# echo "Starting Node"
 cd /local/repository/network
 python3 node.py $1 $2 $3 $4 $5
+
+# echo "GRPC"
+# cd grpc #/local/repository/grpc
+# pip3 install --upgrade pip
+# python3 -m pip install grpcio
+# sudo -H pip3 install grpcio-tools
+# python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
+
+
+# python3 node.py -a "node${1}:50050" -k "node0:50050"
+
+

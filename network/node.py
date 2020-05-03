@@ -366,7 +366,7 @@ class Node(Wrapper):
     @Pyro4.expose
     @cache
     def dummy_refresh_reconstruct(self):
-        request_shares = [n.release_share() for n in self.old_nodes]
+        request_shares = [n.dummy_release_share() for n in self.old_nodes]
         shares = [s.value for s in request_shares]
         return 'done'
 
