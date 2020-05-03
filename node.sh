@@ -28,7 +28,7 @@ pip3 install grpcio-tools
 python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
 
 echo "Waiting for ns to start"
-sleep 600
+#sleep 600
 
 
 python3 node.py -a "node${1}:50050" -k "node0:50050"
