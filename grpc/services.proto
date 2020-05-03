@@ -13,6 +13,19 @@ package services;
 //service OldNodeService {
 //}
 
+// Service running on each node
+service NodeService {
+  rpc StartRefresh(EmptyMsg) returns (AckMsg) {}
+  rpc GetStuffFromKing(EmptyMsg) returns (AckMsg) {}
+  rpc GetOldStuff(EmptyMsg) returns (AckMsg) {}
+}
+
+message EmptyMsg {}
+
+message AckMsg {}
+
+
+// Toy service example to test basic perf
 service PingService {
   rpc Ping(Ball) returns (Ball) {}
 }
