@@ -3,7 +3,7 @@
 import geni.portal as portal
 import geni.rspec.pg as pg
 
-N = 8 # CONFIGURE
+N = 32 # CONFIGURE
 NSHOST = 'bulletin'
 NSPORT = 9090
 

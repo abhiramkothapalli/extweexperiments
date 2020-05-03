@@ -101,7 +101,7 @@ def serve(addr, config, loop=True):
 
 if __name__ == '__main__':
 
-    N = 8
+    N = 32
     
     logging.basicConfig(level=logging.DEBUG)
 
@@ -116,10 +116,11 @@ if __name__ == '__main__':
     #     help="A new committee IP/hostname:port")
     args = parser.parse_args()
 
-    old_nodes = ['node' + str(n) + ':50050' for n in range(N)]
-    new_nodes = ['node' + str(N + n) + ':50050' for n in range(N)]
+    old_nodes = ['node' + str(n) + ':' + str(50000 + n) for n in range(N)]
+    new_nodes = ['node' + str(N + n) +':' + str(50000 + N + n) for n in range(N)]
 
     #config = AddrConfig(args.king, args.old, args.new)
     #config = AddrConfig(args.king, old_nodes, new_nodes)
+
 
     serve(args.addr, (args.king, old_nodes, new_nodes))
