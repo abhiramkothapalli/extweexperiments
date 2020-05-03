@@ -1,5 +1,4 @@
 TARGET += gfeccore.py
-TARGET += gfeccore
 
 all:$(TARGET)
 

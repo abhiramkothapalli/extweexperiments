@@ -21,11 +21,11 @@ sudo make
 #python3 node.py $1 $2 $3 $4 $5
 
 echo "GRPC"
-cd grpc #/local/repository/grpc
+cd /local/repository/grpc
 pip3 install --upgrade pip
 python3 -m pip install grpcio
 pip3 install grpcio-tools
-python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
+sudo python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
 
 echo "Waiting for ns to start"
 #sleep 600
