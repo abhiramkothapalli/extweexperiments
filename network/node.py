@@ -372,10 +372,9 @@ class Node(Wrapper):
 
     @Pyro4.expose
     def dummy_refresh(self):
-        king = self.get_king()
         # Get material from king
         king = self.get_king()
-        result = king.refresh_reconstruct().value
+        result = king.dummy_refresh_reconstruct().value
         return result
 
     @Pyro4.expose
