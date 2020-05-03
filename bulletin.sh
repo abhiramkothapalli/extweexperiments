@@ -22,9 +22,9 @@ echo "Starting Nameserver"
 
 echo "GRPC"
 cd /local/repository/grpc
-pip3 install --upgrade pip
-python3 -m pip install grpcio
-pip3 install grpcio-tools
+sudo -H pip3 install --upgrade pip
+sudo python3 -m pip install grpcio
+sudo -H pip3 install grpcio-tools
 sudo python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
 
 #python3 bulletin.py -a "bulletin:50050" -k "node0:50050"

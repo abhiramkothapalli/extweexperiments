@@ -22,15 +22,13 @@ sudo make
 
 echo "GRPC"
 cd /local/repository/grpc
-pip3 install --upgrade pip
-python3 -m pip install grpcio
-pip3 install grpcio-tools
+sudo -H pip3 install --upgrade pip
+sudo python3 -m pip install grpcio
+sudo -H pip3 install grpcio-tools
 sudo python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
 
-echo "Waiting for ns to start"
-#sleep 600
 
-
+echo "Starting node${1}:50050"
 python3 node.py -a "node${1}:50050" -k "node0:50050"
 
 
