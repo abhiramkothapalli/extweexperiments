@@ -3,6 +3,7 @@ import time
 import math
 import logging
 import argparse
+from threading import Lock
 
 from addr_config import *
 
@@ -26,6 +27,7 @@ class NodeServicer(services_pb2_grpc.NodeServiceServicer):
             self.old_nodes.append(services_pb2_grpc.NodeServiceStub(channel))
       
         self.king_cache = False
+        self.king_lock = Lock()
 
         # Actually, for this test, we don't need connections to the new committee
         self.new_nodes = []
@@ -43,11 +45,22 @@ class NodeServicer(services_pb2_grpc.NodeServiceServicer):
 
         return services_pb2.AckMsg()
 
+    def is_cached(self):
+        cached = True
+        self.king_lock.acquire()
+        if not self.king_cache:
+            self.king_cache = True
+            cached = False
+        self.king_lock.release()
+        return cached
+
     # Run on the king
     def GetStuffFromKing(self, request, context):
         logging.info("GetStuffFromKing: Begin")
-        if not self.king_cache: # Only poll if we haven't done it already
-            self.king_cache = True  # This seems to work, but it's racy
+
+        cached = self.is_cached()
+
+        if not cached: # Only poll if we haven't done it already
             logging.info("GetStuffFromKing: Doing the work")
             # Send a request to each node in the old committee
             empty = services_pb2.EmptyMsg()
@@ -58,7 +71,6 @@ class NodeServicer(services_pb2_grpc.NodeServiceServicer):
             # Wait for responses
             for future in futures:
                 response = future.result()
-            
         else:
             logging.info("GetStuffFromKing: Resting on laurels")
         logging.info("GetStuffFromKing: End")
