@@ -17,7 +17,7 @@ echo "Building"
 sudo make
 
 echo "Waiting for ns to start"
-#sleep 600
+sleep 600
 
 # echo "Starting Node"
 cd /local/repository/network
