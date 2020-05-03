@@ -56,7 +56,7 @@ class BulletinBoard():
 
 if __name__ == '__main__':
 
-    N = 2
+    N = 64
     
     logging.basicConfig(level=logging.DEBUG)
 
