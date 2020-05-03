@@ -101,7 +101,7 @@ def serve(addr, config, loop=True):
 
 if __name__ == '__main__':
 
-    N = 8
+    N = 2
     
     logging.basicConfig(level=logging.DEBUG)
 
