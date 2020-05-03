@@ -28,19 +28,22 @@ class BulletinBoard():
 
 
     def refresh(self):
+        logging.info("Refresh: Begin")
         # Send a request to each node in the new committee
         empty = services_pb2.EmptyMsg()
         futures = []
         for node in self.new_nodes:
-            futures.append(node.StartRefresh(empty))
+            futures.append(node.StartRefresh.future(empty))
 
         # Wait for responses
         for future in futures:
             response = future.result()
+        
+        logging.info("Refresh: End")
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="Node")
     parser.add_argument('-a', '--addr', action='store', required=True, 

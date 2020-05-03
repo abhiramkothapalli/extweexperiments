@@ -52,7 +52,7 @@ class NodeServicer(services_pb2_grpc.NodeServiceServicer):
         empty = services_pb2.EmptyMsg()
         futures = []
         for node in self.old_nodes:
-            futures.append(node.GetOldStuff(empty))
+            futures.append(node.GetOldStuff.future(empty))
 
         # Wait for responses
         for future in futures:
@@ -82,7 +82,7 @@ def serve(addr, config):
         server.stop(0)
 
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="Node")
     parser.add_argument('-a', '--addr', action='store', required=True, 
