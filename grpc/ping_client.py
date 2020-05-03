@@ -1,6 +1,7 @@
 
 import grpc
 import timeit
+import argparse
 
 import services_pb2
 import services_pb2_grpc
@@ -25,8 +26,8 @@ def call(stub, count):
 def test_one_ball(stub, ball):
     new_ball = stub.Ping(ball)
 
-def play():
-    channel = grpc.insecure_channel('localhost:50051')
+def play(server):
+    channel = grpc.insecure_channel('%s:50051' % server)
     stub = services_pb2_grpc.PingServiceStub(channel)
 
     count = 0
@@ -40,8 +41,8 @@ def play():
         else:
             count = new_count
 
-def test():
-    channel = grpc.insecure_channel('localhost:50051')
+def test(server):
+    channel = grpc.insecure_channel('%s:50051' % server)
     stub = services_pb2_grpc.PingServiceStub(channel)
 
     
@@ -50,5 +51,11 @@ def test():
 
 if __name__ == '__main__':
     #logging.basicConfig()
-    #play()
-    test()
+
+    parser = argparse.ArgumentParser(description="Ping client")
+    parser.add_argument('-s', '--server', action='store', required=True, 
+                        help="Server's IP/hostname")
+    args = parser.parse_args()
+
+    #play(args.server)
+    test(args.server)
