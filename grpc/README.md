@@ -11,4 +11,4 @@ python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. s
 # Run PingPong
 
 python3 ping_server.py  
-python3 ping_client.py 
+python3 ping_client.py -s localhost
