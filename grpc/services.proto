@@ -1,0 +1,22 @@
+syntax = "proto3";
+package services;
+
+//service BulletinBoardService {
+//}
+//
+//service NewNodeService {
+//}
+//
+//service KingService {
+//}
+//
+//service OldNodeService {
+//}
+
+service PingService {
+  rpc Ping(Ball) returns (Ball) {}
+}
+
+message Ball {
+  uint32 count = 1;
+}
