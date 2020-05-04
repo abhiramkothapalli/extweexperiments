@@ -1,4 +1,4 @@
-#cd /local/repository/
+cd /local/repository/
 
 echo "Installing Required Packages"
 
