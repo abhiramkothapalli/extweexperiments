@@ -35,30 +35,43 @@ def distribute(func):
 
         if key not in args[0].locks:
             args[0].locks[key] = Lock()
-            
+
+        f = open('deadlock.txt', 'a+')
+        f.write(('Node ' + str(args[0].nid) + ' waiting (distribute): ' + str(key)) + '\n')
+        f.close()
         args[0].locks[key].acquire()
+        try:
+            f = open('deadlock.txt', 'a+')
+            f.write(('Node ' + str(args[0].nid) + ' acquired (distribute): ' + str(key)) + '\n')
+            f.close()
 
-        # If function is called for the first time compute
-        # and cache the result
-        if key not in args[0].cached:
-            res = func(*args, **kwargs)
-            args[0].cached[key] = res
+            # If function is called for the first time compute
+            # and cache the result
+            if key not in args[0].cached:
+                res = func(*args, **kwargs)
+                args[0].cached[key] = res
 
 
-        nid = unwrap(args[1])
+            nid = unwrap(args[1])
 
-        j = nid % args[0].n
-        i = 0
-        if nid >= args[0].n:
-            i = 1
+            j = nid % args[0].n
+            i = 0
+            if nid >= args[0].n:
+                i = 1
 
-        # Otherwise if node is calling for the first time
-        # Pop element in the list and provide to node
-        if nid not in args[0].distributed:
-            res = args[0].cached[key][i][j]
-            args[0].distributed[nid] = res
+            # Otherwise if node is calling for the first time
+            # Pop element in the list and provide to node
+            if nid not in args[0].distributed:
+                res = args[0].cached[key][i][j]
+                args[0].distributed[nid] = res
 
+            f = open('deadlock.txt', 'a+')
+            f.write(('Node ' + str(args[0].nid) + ' releasing (distribute): ' + str(key)) + '\n')
+            f.close()
+        except:
+            args[0].locks[key].release()
         args[0].locks[key].release()
+
             
         return wrap(args[0].distributed[nid])
             
@@ -75,12 +88,24 @@ def cache(func):
         if key not in args[0].locks:
             args[0].locks[key] = Lock()
 
+        f = open('deadlock.txt', 'a+')
+        f.write(('Node ' + str(args[0].nid) + ' waiting (cache): ' + str(key)) + '\n')
+        f.close()
         args[0].locks[key].acquire()
+        try:
+            f = open('deadlock.txt', 'a+')
+            f.write(('Node ' + str(args[0].nid) + ' acquired (cache): ' + str(key)) + '\n')
+            f.close()
             
-        if key not in args[0].cached:
-            res = func(*args, **kwargs)
-            args[0].cached[key] = res
+            if key not in args[0].cached:
+                res = func(*args, **kwargs)
+                args[0].cached[key] = res
 
+            f = open('deadlock.txt', 'a+')
+            f.write(('Node ' + str(args[0].nid) + ' releasing (cache): ' + str(key)) + '\n')
+            f.close()
+        except:
+            args[0].locks[key].release()
         args[0].locks[key].release()
                 
         return wrap(args[0].cached[key])
@@ -88,7 +113,6 @@ def cache(func):
     return wrapper
     
 
-@Pyro4.behavior(instance_mode="single")
 class Node(Wrapper):
 
     def __init__(self, addr, nid, config):
@@ -228,7 +252,10 @@ class Node(Wrapper):
     @cache
     def distribution_verification_1(self, result, context):
 
+
         request_msgs = [n.distribution.future(wrap(self.nid)) for n in self.new_nodes]
+
+
 
         ss = []
         Cs = []
@@ -398,7 +425,7 @@ class Node(Wrapper):
         return wrap(sampleGF())
 
 def serve(addr, nid, config, loop=True):
-    server = grpc.server(futures.ThreadPoolExecutor())
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=2048))
     services_pb2_grpc.add_NodeServicer_to_server(Node(addr, nid, config), server)
     print("Starting node on addr %s" % addr)
     server.add_insecure_port(addr)

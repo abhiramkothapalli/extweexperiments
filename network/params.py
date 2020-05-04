@@ -1,7 +1,7 @@
 import dpss
 
-N = [4, 8] # CONFIGURE
-R = 10 # CONFIGURE
+N = [8] # CONFIGURE
+R = 1 # CONFIGURE
 LOCAL = False # CONFIGURE
 
 
