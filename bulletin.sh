@@ -16,16 +16,10 @@ sudo python3 -m pip install Pyro4 numpy
 echo "Building"
 sudo make
 
-echo "Starting Nameserver"
-#cd network
-#python3 nameserver.py
-
 echo "GRPC"
-cd /local/repository/grpc
+cd /local/repository/network
 sudo -H pip3 install --upgrade pip
 sudo python3 -m pip install grpcio
 sudo -H pip3 install grpcio-tools
 sudo python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
-
-#python3 bulletin.py -a "bulletin:50050" -k "node0:50050"
 

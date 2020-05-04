@@ -16,19 +16,14 @@ sudo python3 -m pip install Pyro4 numpy
 echo "Building"
 sudo make
 
-# echo "Starting Node"
-#cd /local/repository/network
-#python3 node.py $1 $2 $3 $4 $5
-
 echo "GRPC"
-cd /local/repository/grpc
+cd /local/repository/network
 sudo -H pip3 install --upgrade pip
 sudo python3 -m pip install grpcio
 sudo -H pip3 install grpcio-tools
 sudo python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
 
-
-echo "Starting node${1}:50050"
-python3 node.py -a "node${1}:50050" -k "node0:50050"
+echo "Starting node${1}:${2}"
+python3 node.py -a "node${1}:${2}" -i $1
 
 

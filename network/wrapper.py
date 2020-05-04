@@ -2,54 +2,52 @@ import sys
 import Pyro4
 from serializer import *
 
-sys.excepthook = Pyro4.util.excepthook
+import grpc
+import services_pb2       # Messages
+import services_pb2_grpc  # Services
 
 
-@Pyro4.expose
-class Wrapper():
+class Wrapper(services_pb2_grpc.NodeServicer):
 
-    def __init__(self, u, NSHOST, NSPORT):
-
-        self.u = u
-        self.NSHOST = NSHOST
-        self.NSPORT = NSPORT
-
+    def __init__(self, old_addrs, new_addrs):
+        self._OLDNODES, self._NEWNODES = self.setup_network(old_addrs, new_addrs)
+        self.old_addrs = old_addrs
+        self.new_addrs = new_addrs
 
     def flush(self):
         return None
 
-    def setup_network(self, NSHOST, NSPORT):
+    def setup_network(self, old_addrs, new_addrs):
 
-        with Pyro4.locateNS(host=NSHOST, port=NSPORT) as ns:
+        old_nodes = []
+        new_nodes = []
 
-            batchns = ns._pyroBatch()
+        for addr in old_addrs:
+            channel = grpc.insecure_channel(addr)
+            old_nodes += [services_pb2_grpc.NodeStub(channel)]
 
-            for i in [0, 1]:
-                for j in range(self.n):
-                    batchns.lookup(str(i) + str(j))
+        for addr in new_addrs:
+            channel = grpc.insecure_channel(addr)
+            new_nodes += [services_pb2_grpc.NodeStub(channel)]
 
-            results = list(batchns())
-
-            old_nodes = [Pyro4.Proxy(uri) for uri in results[:self.n]]
-            new_nodes = [Pyro4.Proxy(uri) for uri in results[self.n:]]
-
-            for nodes in old_nodes + new_nodes:
-                nodes._pyroAsync()
-                    
-            return old_nodes, new_nodes
+        return old_nodes, new_nodes
 
 
 
-    def initalize(self, params):
+    def initalize(self, request, context=None):
+
+        n, pk = unwrap(request)
 
         self.flush()
 
-        n, pk = params
-        
         self.n = n
         self.pk = pk
 
-        old_nodes, new_nodes = self.setup_network(self.NSHOST, self.NSPORT)
+        self.old_nodes = self._OLDNODES[:n]
+        self.new_nodes = self._NEWNODES[:n]
 
-        self.old_nodes = old_nodes
-        self.new_nodes = new_nodes
+        return wrap(None)
+
+
+
+

@@ -1,11 +1,8 @@
-
 (trap "kill 0" SIGINT;
- for i in 0 1
+ for ((j=0;j<$((2*${1})); j++))
  do
-     for ((j=0;j<$1; j++))
-     do
-	 python3 node.py $i $j localhost localhost 9090 &
-     done
+     IP=$((j + 50000)) 
+     python3 node.py -a "localhost:${IP}" -i ${j} &
  done
  wait
 )

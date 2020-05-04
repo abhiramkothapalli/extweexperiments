@@ -176,6 +176,8 @@ def reconstruct_full(pk, shares):
 
     ''' Hard check if simple check fails '''
 
+
+
     vss = []
     for s in ss:
         if verify(pk, s, C):

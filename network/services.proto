@@ -1,0 +1,46 @@
+syntax= "proto3";
+package services;
+
+
+// Service running on each node
+service Node {
+
+  rpc get_share(Pickle) returns (Pickle) {}
+  rpc initalize(Pickle) returns (Pickle) {}
+  rpc setup_distribution_verification(Pickle) returns (Pickle) {}
+  rpc setup_distribution(Pickle) returns (Pickle) {}
+  rpc generate_setup_randomness(Pickle) returns (Pickle) {}
+  rpc distribution(Pickle) returns (Pickle) {}
+  rpc distribution_verification_1(Pickle) returns (Pickle) {}
+  rpc generate_refresh_randomness(Pickle) returns (Pickle) {}
+  rpc handle_share_request(Pickle) returns (Pickle) {}
+  rpc handle_share_response(Pickle) returns (Pickle) {}
+  rpc release_share(Pickle) returns (Pickle) {}
+  rpc refresh_reconstruct(Pickle) returns (Pickle) {}
+  rpc refresh(Pickle) returns (Pickle) {}
+
+  rpc ping(Pickle) returns (Pickle) {}
+
+}
+
+message EmptyMsg {}
+message String {string s = 1;}
+
+// message Share {
+//   string i = 1;
+//   string u = 2;
+//   string v = 3;
+//   string w = 4;
+// }
+// message Commitment {
+//   string c = 1;
+// }
+
+// message ShCom {
+//   Share s = 1;
+//   Commitment c = 2;
+// }
+
+message Pickle {
+  bytes s = 1;
+}

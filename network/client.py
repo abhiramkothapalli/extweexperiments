@@ -3,36 +3,40 @@
 import Pyro4
 import dpss
 from wrapper import Wrapper
+from serializer import wrap, unwrap
+from concurrent import futures
 
 
-@Pyro4.behavior(instance_mode='single')
+
 class Client(Wrapper):
 
-    @Pyro4.expose
+
     def share(self, secret):
 
-        shares = [n.handle_share_request() for n in self.old_nodes]
+        shares = [n.handle_share_request.future(wrap(None)) for n in self.old_nodes]
         rss = []
         coms = []
         for share in shares:
-            rs, com = share.value
+            rs, com = unwrap(share.result())
             rss += [rs]
             coms +=[com]
+
 
         com = coms[0] # TODO: Find a better way
         sr, zu = dpss.share(self.pk, (rss, com), secret)
 
         for n in self.old_nodes:
-            n.handle_share_response((sr, zu))
+            n.handle_share_response(wrap((sr, zu)))
+        
 
-    @Pyro4.expose
+
     def reconstruct(self):
 
-        shares = [n.get_share() for n in self.new_nodes]
+        shares = [n.get_share.future(wrap(None)) for n in self.new_nodes]
         ss = []
         coms = []
         for share in shares:
-            s, com = share.value
+            s, com = unwrap(share.result())
             ss += [s]
             coms += [com]
 
