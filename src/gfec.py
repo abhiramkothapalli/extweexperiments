@@ -181,8 +181,12 @@ class EC1(EC):
         
         self.n = n
 
+    def normalize(self):
+        normalize(self.n)
+
     # TODO: FIX THIS DEFINITION
     def __hash__(self):
+        self.normalize()
         return hash(to_string(self.n))
         
 

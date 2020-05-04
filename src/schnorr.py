@@ -2,6 +2,7 @@ from gfec import *
 
 
 def fs_challenge(t):
+    t.normalize()
 
     print('Schnorr t: ' + str(t))
 

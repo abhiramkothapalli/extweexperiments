@@ -122,6 +122,10 @@ bool eq(Ec1 *a, Ec1 * b) {
   return *a == *b;
 }
 
+void normalize(Ec1* a) {
+  a->normalize();
+}
+
 std::string to_string(Ec1* a) {
   return (a->p[0].toString() + "," +
 	  a->p[1].toString() + "," +

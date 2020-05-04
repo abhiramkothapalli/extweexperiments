@@ -56,6 +56,8 @@ void smul(Ec1* a, Ec1* b, GF* c);
 
 bool eq(Ec1 *a, Ec1 * b);
 
+void normalize(Ec1 *a);
+
 std::string to_string(Ec1* a);
 
 // EC2 Methods
