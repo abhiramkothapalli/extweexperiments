@@ -1,5 +1,4 @@
 import sys
-import Pyro4
 from serializer import *
 
 import grpc

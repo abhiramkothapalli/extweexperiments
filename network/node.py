@@ -5,12 +5,9 @@ sys.path.append('../src/')
 from gfec import sampleGF
 
 import grpc
-
-# Import the generated classes
 import services_pb2       # Messages
 import services_pb2_grpc  # Services
 
-import Pyro4
 import dpss
 import time
 import vss
@@ -23,7 +20,9 @@ from serializer import wrap, unwrap
 
 from threading import Lock
 
-sys.excepthook = Pyro4.util.excepthook
+import schnorr
+
+
 
 def distribute(func):
 
@@ -338,16 +337,15 @@ class Node(Wrapper):
 
     def handle_share_response(self, request, context):
 
-        srzu = unwrap(request)
+        statement, srzu = unwrap(request)
         s, r = srzu
         share, com = dpss.setup_fresh_parties(self.pk, s, r, self.rs, self.com)
 
         self.share = share
         self.com = com
+        self.statement = statement
 
-        #return wrap(None)
-        return wrap((self.share, self.com))
-
+        return wrap(None)
 
     ''' Refresh '''
 
@@ -379,7 +377,7 @@ class Node(Wrapper):
         kcom = self.com + self.rcom
         kpi = dpss.refresh_king(self.pk, shares, kcom)
 
-        return (kpi, kcom)
+        return (self.statement, kpi, kcom)
 
 
     def refresh(self, request, context):
@@ -393,7 +391,8 @@ class Node(Wrapper):
 
         # Get material from king
         king = self.get_king()
-        ks, kcom = unwrap(king.refresh_reconstruct(wrap(None)))
+        # CONFIGURE: In practice statement should be received from a trusted source, like a blockchain.
+        statement, ks, kcom = unwrap(king.refresh_reconstruct(wrap(None)))
 
         # Retrieve refresh randomness from storage.
 
@@ -406,13 +405,24 @@ class Node(Wrapper):
         self.share = new_share
         self.com = new_com
 
+        # Store statement
+        self.statement = statement
+
         return wrap(None)
 
     ''' Reconstruct '''
 
 
     def get_share(self, request, context=None):
-        # CONFIGURE this should only be visible to client
+
+        proof = unwrap(request)
+
+        if not schnorr.verify(self.statement, proof):
+            print("Schnorr did not verify")
+            print('Node statement: ' + str(self.statement))
+            print('Node proof: ' + str(proof[0]) + ', ' + str(proof[1]))
+            return wrap(None)
+        
         if not self.share:
             raise Exception('Node ' + str(self.u) + ' does not have requested share')
         else:

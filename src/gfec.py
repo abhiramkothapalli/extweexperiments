@@ -181,8 +181,9 @@ class EC1(EC):
         
         self.n = n
 
-
-
+    # TODO: FIX THIS DEFINITION
+    def __hash__(self):
+        return hash(to_string(self.n))
         
 
 class EC2(EC):

@@ -11,6 +11,7 @@ import params
 import os
 import timeit
 from serializer import wrap, unwrap
+import schnorr
 
 import grpc
 
@@ -86,12 +87,12 @@ def initalize_nodes(n, pk, old_nodes, new_nodes):
 
 
 @timer
-def client_share(client, secret):
-    client.share(secret)
+def client_share(client, statement, secret):
+    client.share(statement, secret)
 
 @timer
-def client_reconstruct(client):
-    client.reconstruct()
+def client_reconstruct(client, statement, witness):
+    client.reconstruct(statement, witness)
 
 @timer
 def ping(node):
@@ -112,7 +113,14 @@ def run_experiment(n, t, pk, old_nodes, new_nodes):
 
     client = create_client(n, pk, params.old_addrs, params.new_addrs)
     secret = sampleGF()
-    client_share_time = client_share(client, secret)
+    witness = sampleGF()
+    statement = g1 * witness
+    print('Bullet statement: ' + str(statement))
+    client_share_time = client_share(client, statement, secret)
+
+    # Check schnorr
+    proof = schnorr.prove(statement, witness)
+    assert schnorr.verify(statement, proof)
 
 
     ''' Refresh '''
@@ -122,7 +130,7 @@ def run_experiment(n, t, pk, old_nodes, new_nodes):
     ''' Reconstruct '''
 
     new_client = create_client(n, pk, params.old_addrs, params.new_addrs)
-    client_reconstruct_time = client_reconstruct(new_client)
+    client_reconstruct_time = client_reconstruct(new_client, statement, witness)
 
     return (setup_randomness_time, refresh_randomness_time, client_share_time, refresh_time, client_reconstruct_time)
 

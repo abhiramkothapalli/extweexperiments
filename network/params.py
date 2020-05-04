@@ -1,13 +1,11 @@
 import dpss
 
-N = [4, 8, 16, 32, 64] # CONFIGURE
+N = [8] # CONFIGURE
 R = 1 # CONFIGURE
-LOCAL = False # CONFIGURE
+LOCAL = True # CONFIGURE
 
 
 T = [int(n / 2) for n in N]
-
-
 
 old_addrs = None
 new_addrs = None
