@@ -1,19 +1,12 @@
 from gfec import *
+import hashlib
 
 
 def fs_challenge(t):
     t.normalize()
 
-    print('Schnorr t: ' + str(t))
-
-    # TODO: this is non-deterministic
-    print('Schnorr t hash: ' + str(hash(t)))
-
-    # We would like to return this
-    print('Schnorr t: ' + str(GF(int(hash(t)))))
-
-    return GF(int(hash(t)))
-    #return GF(7294358) # Return deterministic hash for now
+    a = hashlib.sha256(str(t).encode())
+    return GF(int(a.hexdigest(), 16))
 
 
 

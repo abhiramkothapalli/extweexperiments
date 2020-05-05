@@ -337,12 +337,17 @@ class Node(Wrapper):
 
     def handle_share_response(self, request, context):
 
-        statement, srzu = unwrap(request)
+        srzu = unwrap(request)
         s, r = srzu
         share, com = dpss.setup_fresh_parties(self.pk, s, r, self.rs, self.com)
 
         self.share = share
         self.com = com
+
+        return wrap(None)
+
+    def set_statement(self, request, context):
+        statement = unwrap(request)
         self.statement = statement
 
         return wrap(None)
@@ -377,7 +382,7 @@ class Node(Wrapper):
         kcom = self.com + self.rcom
         kpi = dpss.refresh_king(self.pk, shares, kcom)
 
-        return (self.statement, kpi, kcom)
+        return (kpi, kcom)
 
 
     def refresh(self, request, context):
@@ -391,8 +396,7 @@ class Node(Wrapper):
 
         # Get material from king
         king = self.get_king()
-        # CONFIGURE: In practice statement should be received from a trusted source, like a blockchain.
-        statement, ks, kcom = unwrap(king.refresh_reconstruct(wrap(None)))
+        ks, kcom = unwrap(king.refresh_reconstruct(wrap(None)))
 
         # Retrieve refresh randomness from storage.
 
@@ -405,9 +409,6 @@ class Node(Wrapper):
         self.share = new_share
         self.com = new_com
 
-        # Store statement
-        self.statement = statement
-
         return wrap(None)
 
     ''' Reconstruct '''
@@ -418,9 +419,6 @@ class Node(Wrapper):
         proof = unwrap(request)
 
         if not schnorr.verify(self.statement, proof):
-            print("Schnorr did not verify")
-            print('Node statement: ' + str(self.statement))
-            print('Node proof: ' + str(proof[0]) + ', ' + str(proof[1]))
             return wrap(None)
         
         if not self.share:

@@ -18,28 +18,11 @@ service Node {
   rpc release_share(Pickle) returns (Pickle) {}
   rpc refresh_reconstruct(Pickle) returns (Pickle) {}
   rpc refresh(Pickle) returns (Pickle) {}
+  rpc set_statement(Pickle) returns (Pickle) {}
 
   rpc ping(Pickle) returns (Pickle) {}
 
 }
-
-message EmptyMsg {}
-message String {string s = 1;}
-
-// message Share {
-//   string i = 1;
-//   string u = 2;
-//   string v = 3;
-//   string w = 4;
-// }
-// message Commitment {
-//   string c = 1;
-// }
-
-// message ShCom {
-//   Share s = 1;
-//   Commitment c = 2;
-// }
 
 message Pickle {
   bytes s = 1;

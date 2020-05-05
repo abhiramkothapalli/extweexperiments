@@ -2,6 +2,7 @@
 
 import random
 from lib.atepairing.python.gfeccore import *
+import hashlib
 
 # Setup must always be called upon loading library
 setup()
@@ -183,12 +184,6 @@ class EC1(EC):
 
     def normalize(self):
         normalize(self.n)
-
-    # TODO: FIX THIS DEFINITION
-    def __hash__(self):
-        self.normalize()
-        return hash(to_string(self.n))
-        
 
 class EC2(EC):
 

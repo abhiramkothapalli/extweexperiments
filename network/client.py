@@ -19,7 +19,6 @@ class Client(Wrapper):
 
         # Secret is released when someone finds discrete log of statement
         
-
         shares = [n.handle_share_request.future(wrap(None)) for n in self.old_nodes]
         rss = []
         coms = []
@@ -32,8 +31,12 @@ class Client(Wrapper):
         com = coms[0] # TODO: Find a better way
         sr, zu = dpss.share(self.pk, (rss, com), secret)
 
-        for n in self.old_nodes:
-            n.handle_share_response(wrap((statement, (sr, zu))))
+        future_results_share = [n.handle_share_response.future(wrap((sr, zu))) for n in self.old_nodes]
+        future_results_statement = [n.set_statement.future(wrap(statement)) for n in self.new_nodes]
+
+        results_share = [r.result() for r in future_results_share]
+        results_statement = [r.result() for r in future_results_statement]
+
         
 
 
@@ -43,13 +46,6 @@ class Client(Wrapper):
 
 
         proof = schnorr.prove(statement, witness)
-
-        print('Client statement: ' + str(statement))
-        print('Client proof: ' + str(proof[0]) + ', ' + str(proof[1]))
-
-        # TODO: Client statement, proof verifies
-        # But node does not
-        print('Client side schnorr verification: ' + str(schnorr.verify(statement, proof)))
 
         shares = [n.get_share.future(wrap(proof)) for n in self.new_nodes]
         ss = []

@@ -107,20 +107,13 @@ def run_experiment(n, t, pk, old_nodes, new_nodes):
     setup_randomness_time = generate_setup_randomness(old_nodes, new_nodes)
     refresh_randomness_time = generate_refresh_randomness(old_nodes, new_nodes)
 
-    print('Finished Refresh Randomness')
-
     ''' Share '''
 
     client = create_client(n, pk, params.old_addrs, params.new_addrs)
     secret = sampleGF()
     witness = sampleGF()
     statement = g1 * witness
-    print('Bullet statement: ' + str(statement))
     client_share_time = client_share(client, statement, secret)
-
-    # Check schnorr
-    proof = schnorr.prove(statement, witness)
-    assert schnorr.verify(statement, proof)
 
 
     ''' Refresh '''
