@@ -66,7 +66,7 @@ ifc.addAddress(pg.IPv4Address("192.168.1.254", "255.255.255.0"))
 ifaces.append(ifc)
 
 lan = request.LAN("lan")
-lan.bandwidth=100000
+lan.bandwidth=1000
 
 for ifc in ifaces:
     lan.addInterface(ifc)
