@@ -50,7 +50,7 @@ for n in range(0, M):
 
     node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(n) + ' ' + str(NPORT) + " >> " + output))
 
-    node.Site("Site" + str(n % 3))
+    node.Site("Site" + str(n % 2))
 
 # Bulletin Execute Scripts
 bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh"  + " >> " + output))
