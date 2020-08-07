@@ -7,7 +7,7 @@ import geni.rspec.pg as pg
 ''' Network Configuration '''
 
 # Size and naming convention configuration
-N = 2
+N = 16
 M = 2 * N
 BHOST = 'bulletin'
 node_prefix = 'node'
