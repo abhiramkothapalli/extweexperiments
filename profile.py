@@ -3,8 +3,15 @@
 import geni.portal as portal
 import geni.rspec.pg as pg
 
-N = 2 # CONFIGURE
+
+''' Network Configuration '''
+
+# Size and naming convention configuration
+N = 2
+M = 2 * N
 BHOST = 'bulletin'
+node_prefix = 'node'
+NPORT = '50050'
 
 # Create a portal context.
 pc = portal.Context()
@@ -12,64 +19,67 @@ pc = portal.Context()
 # Create a Request object to start building the RSpec.
 request = pc.makeRequestRSpec()
 
-M = 2 * N
+# Create an array for interfaces
+ifaces = []
 
-''' Node Creation '''
 
-# Create Nodes
+''' Node Setup '''
+
 nodes = []
 for n in range(0, M):
-    node = request.XenVM('node' + str(n))
-    nodes += [node]
 
-bulletin = request.XenVM(BHOST)
+    # Create node
+    node = request.RawPC(node_prefix + str(n))
 
+    # Node script directories
+    node_startup = "/local/repository/node.sh"
+    node_output = "/local/repository/startup_output.txt"
 
-''' Networking '''
+    # Add node startup script
+    node.addService(pg.Execute(shell="sh", command=str(node_startup) + " " + str(n) + ' ' + str(NPORT) + " >> " + node_output))
 
-
-#request.Link(members=(nodes + [bulletin]))
-
-
-''' VM SETUP '''
-
-# Node Execute Scripts
-ifaces = []
-for n in range(0, M):
-
-    node = nodes[n]
-
-    output = "/local/repository/startup_output.txt"
-
-    nodehost = 'node' + str(n)
-    NPORT = '50050'
-
-    i = 0
-    if n >= N:
-        i = 1
-    j = n % N
-
-    node.addService(pg.Execute(shell="sh", command="/local/repository/node.sh " + str(n) + ' ' + str(NPORT) + " >> " + output))
+    # Set node site
     node.Site("Site" + str(n % 2))
+
+    # Node networking
     ifc = node.addInterface("eth1")
-    # Specify the IPv4 address
     ifc.addAddress(pg.IPv4Address("192.168.1." + str(n + 1), "255.255.255.0"))
     ifaces.append(ifc)
 
+    nodes += [nodes]
 
-# Bulletin Execute Scripts
-bulletin.addService(pg.Execute(shell="sh", command="/local/repository/bulletin.sh"  + " >> " + output))
+
+''' Bulletin Setup '''
+
+# Create bulletin
+bulletin = request.RawPC(BHOST)
+
+# Bulletin script direectories
+bulletin_startup = "/local/repository/bulletin.sh"
+bulletin_output = "/local/repository/startup_output.txt"
+
+# Add bulletin startup script
+bulletin.addService(pg.Execute(shell="sh", command=str(bulletin_startup)  + " >> " + bulletin_output))
+
+# Set bulletin site
 bulletin.Site("Site1")
+
+# Bulletin networking
 ifc = bulletin.addInterface("eth1")
-# Specify the IPv4 address
 ifc.addAddress(pg.IPv4Address("192.168.1.254", "255.255.255.0"))
 ifaces.append(ifc)
+
+
+''' Networking Setup '''
+
+#request.Link(members=(nodes + [bulletin]))
 
 lan = request.LAN("lan")
 lan.bandwidth=1000
 
 for ifc in ifaces:
     lan.addInterface(ifc)
+
 
 ''' Print Resulting RSpec '''
 
