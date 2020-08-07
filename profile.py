@@ -39,12 +39,12 @@ for n in range(0, M):
     node.addService(pg.Execute(shell="sh", command=str(node_startup) + " " + str(n) + ' ' + str(NPORT) + " >> " + node_output))
 
     # Set node site
-    node.Site("Site" + str(n % 2))
+    node.Site("Site" + str(n % 2 + 1))
 
     # Node networking
-    ifc = node.addInterface("eth1")
-    ifc.addAddress(pg.IPv4Address("192.168.1." + str(n + 1), "255.255.255.0"))
-    ifaces.append(ifc)
+    iface = node.addInterface("eth1")
+    iface.addAddress(pg.IPv4Address("192.168.1." + str(n + 1), "255.255.255.0"))
+    ifaces.append(iface)
 
     nodes += [nodes]
 
@@ -65,9 +65,9 @@ bulletin.addService(pg.Execute(shell="sh", command=str(bulletin_startup)  + " >>
 bulletin.Site("Site1")
 
 # Bulletin networking
-ifc = bulletin.addInterface("eth1")
-ifc.addAddress(pg.IPv4Address("192.168.1.254", "255.255.255.0"))
-ifaces.append(ifc)
+iface = bulletin.addInterface("eth1")
+iface.addAddress(pg.IPv4Address("192.168.1.254", "255.255.255.0"))
+ifaces.append(iface)
 
 
 ''' Networking Setup '''
@@ -75,10 +75,10 @@ ifaces.append(ifc)
 #request.Link(members=(nodes + [bulletin]))
 
 lan = request.LAN("lan")
-lan.bandwidth=1000
+lan.bandwidth=100000
 
-for ifc in ifaces:
-    lan.addInterface(ifc)
+for iface in ifaces:
+    lan.addInterface(iface)
 
 
 ''' Print Resulting RSpec '''
