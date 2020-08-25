@@ -11,18 +11,18 @@ sudo apt-get --assume-yes install libgmp-dev
 sudo apt-get --assume-yes install swig
 
 echo "Installing Python packages"
-sudo python3 -m pip install Pyro4 numpy
-
-echo "Building"
-sudo make
+sudo python3 -m pip install numpy
 
 echo "GRPC"
-cd /local/repository/network
 sudo -H pip3 install --upgrade pip
 sudo python3 -m pip install grpcio
 sudo -H pip3 install grpcio-tools
 
+echo "Building"
+sudo make
+
 echo "Starting node${1}:${2}"
+cd /local/repository/network
 python3 node.py -a "node${1}:${2}" -i $1
 
 

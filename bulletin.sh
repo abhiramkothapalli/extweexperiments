@@ -13,12 +13,13 @@ sudo apt-get --assume-yes install swig
 echo "Installing Python packages"
 sudo python3 -m pip install numpy
 
-echo "Building"
-sudo make
-
 echo "GRPC"
-cd /local/repository/network
 sudo -H pip3 install --upgrade pip
 sudo python3 -m pip install grpcio
 sudo -H pip3 install grpcio-tools
+
+echo "Building"
+sudo make
+
+
 
