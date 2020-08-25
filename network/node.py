@@ -35,14 +35,8 @@ def distribute(func):
         if key not in args[0].locks:
             args[0].locks[key] = Lock()
 
-        f = open('deadlock.txt', 'a+')
-        f.write(('Node ' + str(args[0].nid) + ' waiting (distribute): ' + str(key)) + '\n')
-        f.close()
         args[0].locks[key].acquire()
         try:
-            f = open('deadlock.txt', 'a+')
-            f.write(('Node ' + str(args[0].nid) + ' acquired (distribute): ' + str(key)) + '\n')
-            f.close()
 
             # If function is called for the first time compute
             # and cache the result
@@ -64,9 +58,6 @@ def distribute(func):
                 res = args[0].cached[key][i][j]
                 args[0].distributed[nid] = res
 
-            f = open('deadlock.txt', 'a+')
-            f.write(('Node ' + str(args[0].nid) + ' releasing (distribute): ' + str(key)) + '\n')
-            f.close()
         except:
             args[0].locks[key].release()
         args[0].locks[key].release()

@@ -1,8 +1,8 @@
 import dpss
 
-N = [4] # CONFIGURE
+N = [4, 8] # CONFIGURE
 R = 1 # CONFIGURE
-LOCAL = True # CONFIGURE
+LOCAL = False # CONFIGURE
 
 
 T = [int(n / 2) for n in N]

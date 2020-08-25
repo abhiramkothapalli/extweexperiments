@@ -21,7 +21,6 @@ cd /local/repository/network
 sudo -H pip3 install --upgrade pip
 sudo python3 -m pip install grpcio
 sudo -H pip3 install grpcio-tools
-sudo python3 -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. services.proto
 
 echo "Starting node${1}:${2}"
 python3 node.py -a "node${1}:${2}" -i $1

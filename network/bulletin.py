@@ -143,7 +143,7 @@ if __name__ == '__main__':
     T = params.T
     R = params.R
     PK = params.PK
-    applications = [DeadMan]
+    applications = [Schnorr]
 
     resultsfile = params.resultsfile
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
 
                 f = open(resultsfile, 'a+')
-                f.write(str(applications[j]) + ', ' + str(N[i]) + ', ' + str(results)[1:-1] + '\n')
+                f.write(str(applications[j].__name__) + ', ' + str(N[i]) + ', ' + str(results)[1:-1] + '\n')
                 f.close()
 
         
