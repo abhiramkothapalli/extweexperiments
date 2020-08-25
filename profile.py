@@ -7,7 +7,7 @@ import geni.rspec.pg as pg
 ''' Network Configuration '''
 
 # Size and naming convention configuration
-N = 8 # CONFIGURE
+N = 64 # CONFIGURE
 M = 2 * N
 SITES = 2
 BHOST = 'bulletin'
