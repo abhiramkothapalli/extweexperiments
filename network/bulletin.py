@@ -11,7 +11,7 @@ import params
 import os
 import timeit
 from serializer import wrap, unwrap
-from application import Schnorr, TimeLock
+from application import Schnorr, TimeLock, DeadMan
 
 import grpc
 
@@ -128,8 +128,8 @@ def run_experiment(n, t, pk, old_nodes, new_nodes, application):
 
     ''' Reconstruct '''
 
-    if application == TimeLock:
-        print('Sleeping for TimeLock')
+    if application == TimeLock or application == DeadMan:
+        print('Sleeping for TimeLock/DeadMan')
         time.sleep(60)
 
     new_client = create_client(n, pk, params.old_addrs, params.new_addrs)
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     T = params.T
     R = params.R
     PK = params.PK
-    applications = [TimeLock]
+    applications = [DeadMan]
 
     resultsfile = params.resultsfile
 
