@@ -18,7 +18,8 @@ service Node {
   rpc release_share(Pickle) returns (Pickle) {}
   rpc refresh_reconstruct(Pickle) returns (Pickle) {}
   rpc refresh(Pickle) returns (Pickle) {}
-  rpc set_statement(Pickle) returns (Pickle) {}
+  rpc update_application_state(Pickle) returns (Pickle) {}
+  rpc set_application(Pickle) returns (Pickle) {}
 
   rpc ping(Pickle) returns (Pickle) {}
 

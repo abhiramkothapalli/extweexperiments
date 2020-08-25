@@ -11,7 +11,7 @@ import params
 import os
 import timeit
 from serializer import wrap, unwrap
-import schnorr
+from application import Schnorr, TimeLock
 
 import grpc
 
@@ -87,19 +87,27 @@ def initalize_nodes(n, pk, old_nodes, new_nodes):
 
 
 @timer
-def client_share(client, statement, secret):
-    client.share(statement, secret)
+def client_share(client, app, secret):
+    client.share(app, secret)
 
 @timer
-def client_reconstruct(client, statement, witness):
-    client.reconstruct(statement, witness)
+def client_reconstruct(client, app, witness):
+    client.reconstruct(app, witness)
 
 @timer
 def ping(node):
     a = sampleGF()
     result = unwrap(node.ping(wrap(a)).result())
 
-def run_experiment(n, t, pk, old_nodes, new_nodes):
+def initalize_application(application):
+    app = application()
+    witness = app.create_statement()
+    return app, witness
+
+def run_experiment(n, t, pk, old_nodes, new_nodes, application):
+
+    ''' Application Setup '''
+    app, witness = initalize_application(application)
 
     
     ''' Setup '''
@@ -111,9 +119,7 @@ def run_experiment(n, t, pk, old_nodes, new_nodes):
 
     client = create_client(n, pk, params.old_addrs, params.new_addrs)
     secret = sampleGF()
-    witness = sampleGF()
-    statement = g1 * witness
-    client_share_time = client_share(client, statement, secret)
+    client_share_time = client_share(client, app, secret)
 
 
     ''' Refresh '''
@@ -122,8 +128,12 @@ def run_experiment(n, t, pk, old_nodes, new_nodes):
 
     ''' Reconstruct '''
 
+    if application == TimeLock:
+        print('Sleeping for TimeLock')
+        time.sleep(60)
+
     new_client = create_client(n, pk, params.old_addrs, params.new_addrs)
-    client_reconstruct_time = client_reconstruct(new_client, statement, witness)
+    client_reconstruct_time = client_reconstruct(new_client, app, witness)
 
     return (setup_randomness_time, refresh_randomness_time, client_share_time, refresh_time, client_reconstruct_time)
 
@@ -133,6 +143,7 @@ if __name__ == '__main__':
     T = params.T
     R = params.R
     PK = params.PK
+    applications = [TimeLock]
 
     resultsfile = params.resultsfile
 
@@ -140,21 +151,22 @@ if __name__ == '__main__':
 
 
     for r in range(R):
-        for i in range(len(N)):
+        for j in range(len(applications)):
+            for i in range(len(N)):
 
-            old_nodes = OLD_NODES[:N[i]]
-            new_nodes = NEW_NODES[:N[i]]
+                old_nodes = OLD_NODES[:N[i]]
+                new_nodes = NEW_NODES[:N[i]]
 
-            initalize_nodes(N[i], PK[i], old_nodes, new_nodes)
+                initalize_nodes(N[i], PK[i], old_nodes, new_nodes)
 
-            print('Starting Experiment: ' + str(N[i]) + ' ' + str(T[i]))
-            results = run_experiment(N[i], T[i], PK[i], old_nodes, new_nodes)
-            print(results)
+                print('Starting Experiment: ' + str(N[i]) + ' ' + str(T[i]))
+                results = run_experiment(N[i], T[i], PK[i], old_nodes, new_nodes, applications[j])
+                print(results)
 
 
-            f = open(resultsfile, 'a+')
-            f.write(str(N[i]) + ', ' + str(results)[1:-1] + '\n')
-            f.close()
+                f = open(resultsfile, 'a+')
+                f.write(str(applications[j]) + ', ' + str(N[i]) + ', ' + str(results)[1:-1] + '\n')
+                f.close()
 
         
 

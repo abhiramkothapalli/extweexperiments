@@ -87,22 +87,11 @@ def cache(func):
         if key not in args[0].locks:
             args[0].locks[key] = Lock()
 
-        f = open('deadlock.txt', 'a+')
-        f.write(('Node ' + str(args[0].nid) + ' waiting (cache): ' + str(key)) + '\n')
-        f.close()
         args[0].locks[key].acquire()
         try:
-            f = open('deadlock.txt', 'a+')
-            f.write(('Node ' + str(args[0].nid) + ' acquired (cache): ' + str(key)) + '\n')
-            f.close()
-            
             if key not in args[0].cached:
                 res = func(*args, **kwargs)
                 args[0].cached[key] = res
-
-            f = open('deadlock.txt', 'a+')
-            f.write(('Node ' + str(args[0].nid) + ' releasing (cache): ' + str(key)) + '\n')
-            f.close()
         except:
             args[0].locks[key].release()
         args[0].locks[key].release()
@@ -254,8 +243,6 @@ class Node(Wrapper):
 
         request_msgs = [n.distribution.future(wrap(self.nid)) for n in self.new_nodes]
 
-
-
         ss = []
         Cs = []
         Cso = []
@@ -346,10 +333,9 @@ class Node(Wrapper):
 
         return wrap(None)
 
-    def set_statement(self, request, context):
-        statement = unwrap(request)
-        self.statement = statement
-
+    # TODO This should be polled from a trusted party such as the bulletin board
+    def set_application(self, request, context):
+        self.application = unwrap(request)
         return wrap(None)
 
     ''' Refresh '''
@@ -413,12 +399,17 @@ class Node(Wrapper):
 
     ''' Reconstruct '''
 
+    def update_application_state(self, request, context=None):
+
+        state, pi = unwrap(request)
+        self.application.handle_update(state, pi)
+
 
     def get_share(self, request, context=None):
 
-        proof = unwrap(request)
+        pi = unwrap(request)
 
-        if not schnorr.verify(self.statement, proof):
+        if not self.application.handle_release(pi):
             return wrap(None)
         
         if not self.share:
