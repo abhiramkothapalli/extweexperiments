@@ -9,6 +9,7 @@ import geni.rspec.pg as pg
 # Size and naming convention configuration
 N = 8 # CONFIGURE
 M = 2 * N
+SITES = 3
 BHOST = 'bulletin'
 node_prefix = 'node'
 NPORT = '50050'
@@ -39,7 +40,7 @@ for n in range(0, M):
     node.addService(pg.Execute(shell="sh", command=str(node_startup) + " " + str(n) + ' ' + str(NPORT) + " >> " + node_output))
 
     # Set node site
-    node.Site("Site" + str(n % 2 + 1))
+    node.Site("Site" + str(n % SITES + 1))
 
     # Node networking
     iface = node.addInterface("eth1")
