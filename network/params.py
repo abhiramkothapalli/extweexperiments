@@ -14,8 +14,10 @@ if LOCAL:
     old_addrs = ['localhost' + ':' + str(50000 + n) for n in range(N[-1])]
     new_addrs = ['localhost' +  ':' + str(50000 + N[-1] + n) for n in range(N[-1])]
 else:
-    old_addrs = ['node' + str(n) + ':' + '50050' for n in range(N[-1])]
-    new_addrs = ['node' + str(N[-1] + n) +  ':' + '50050' for n in range(N[-1])]
+    #old_addrs = ['node' + str(n) + ':' + '50050' for n in range(N[-1])]
+    #new_addrs = ['node' + str(N[-1] + n) +  ':' + '50050' for n in range(N[-1])]
+    old_addrs = ['192.168.1.' + str(n + 1) + ':' + '50050' for n in range(N[-1])]
+    new_addrs = ['192.168.1.' + str(N[-1] + n + 1) +  ':' + '50050' for n in range(N[-1])]
 
 resultsfile = 'experiment_results.txt'
 

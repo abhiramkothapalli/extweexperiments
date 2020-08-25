@@ -18,6 +18,9 @@ sudo -H pip3 install --upgrade pip
 sudo python3 -m pip install grpcio
 sudo -H pip3 install grpcio-tools
 
+echo "Additional"
+sudo pip3 install pytz
+
 echo "Building"
 sudo make
 
