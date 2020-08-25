@@ -9,7 +9,7 @@ import geni.rspec.pg as pg
 # Size and naming convention configuration
 N = 8 # CONFIGURE
 M = 2 * N
-SITES = 2
+SITES = 1
 BHOST = 'bulletin'
 node_prefix = 'node'
 NPORT = '50050'
