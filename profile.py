@@ -47,7 +47,7 @@ for n in range(0, M):
     iface.addAddress(pg.IPv4Address("192.168.1." + str(n + 1), "255.255.255.0"))
     ifaces.append(iface)
 
-    nodes += [nodes]
+    nodes += [node]
 
 
 ''' Bulletin Setup '''
