@@ -4,12 +4,22 @@ import geni.portal as portal
 import geni.rspec.pg as pg
 
 
+''' Parameters '''
+
+# Describe the parameter(s) this profile script can accept.
+#portal.context.defineParameter( "N", "Number of VMs", portal.ParameterType.INTEGER, 4)
+portal.context.defineParameter( "SITES", "Number of Sites", portal.ParameterType.INTEGER, 2)
+
+# Retrieve the values the user specifies during instantiation.
+params = portal.context.bindParameters()
+
+
 ''' Network Configuration '''
 
 # Size and naming convention configuration
 N = 64 # CONFIGURE
 M = 2 * N
-SITES = 2
+SITES = params.SITES
 BHOST = 'bulletin'
 node_prefix = 'node'
 NPORT = '50050'
