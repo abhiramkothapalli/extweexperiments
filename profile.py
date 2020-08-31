@@ -50,7 +50,7 @@ for n in range(0, M):
     node.addService(pg.Execute(shell="sh", command=str(node_startup) + " " + str(n) + ' ' + str(NPORT) + " >> " + node_output))
 
     # Set node site
-    node.Site("Site" + str(n % SITES + 1))
+    #node.Site("Site" + str(n % SITES + 1))
 
     node.hardware_type = 'm510'
 
@@ -77,7 +77,7 @@ bulletin_output = "/local/repository/startup_output.txt"
 bulletin.addService(pg.Execute(shell="sh", command=str(bulletin_startup)  + " >> " + bulletin_output))
 
 # Set bulletin site
-bulletin.Site("Site1")
+#bulletin.Site("Site1")
 
 # Bulletin networking
 iface = bulletin.addInterface("eth1")
