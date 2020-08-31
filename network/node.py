@@ -76,6 +76,7 @@ def cache(func):
         key = func.__name__
 
         if key not in args[0].locks:
+            print('Generating lock for function: ' + key)
             args[0].locks[key] = Lock()
 
         args[0].locks[key].acquire()
@@ -83,8 +84,8 @@ def cache(func):
             if key not in args[0].cached:
                 res = func(*args, **kwargs)
                 args[0].cached[key] = res
-        except:
-            args[0].locks[key].release()
+        except Exception as e:
+            print(e)
         args[0].locks[key].release()
                 
         return wrap(args[0].cached[key])
@@ -94,11 +95,26 @@ def cache(func):
 
 class Node(Wrapper):
 
+    def create_locks(self):
+
+        self.locks['refresh_reconstruct'] = Lock()
+        self.locks['release_share'] = Lock()
+        self.locks['distribution_verification_1'] = Lock()
+        self.locks['setup_distribution_verification'] = Lock()
+        
+
     def __init__(self, addr, nid, config):
 
         # Secret Share
-        self.share = None
-        self.com = None
+        self.shares = []
+        self.commitments = []
+
+        self.applications = {}
+        self.rcoms = []
+        self.tcoms = []
+
+        # Application to secret
+        self.app_to_secret = {}
 
         # Setup Randomness
         self.setup_shares = []
@@ -112,6 +128,7 @@ class Node(Wrapper):
         self.cached = {}
         self.distributed = {}
         self.locks = {}
+        self.create_locks()
 
         old_addrs = config[0]
         new_addrs = config[1]
@@ -124,8 +141,11 @@ class Node(Wrapper):
     def flush(self):
 
         # Secret Share
-        self.share = None
-        self.com = None
+        self.shares = []
+        self.commitments = []
+
+        # Application to secret
+        self.app_to_secret = {}
 
         # Setup Randomness
         self.setup_shares = []
@@ -138,6 +158,10 @@ class Node(Wrapper):
 
         self.cached = {}
         self.distributed = {}
+
+        self.applications = {}
+        self.rcoms = []
+        self.tcoms = []
 
         return wrap(None)
 
@@ -203,8 +227,6 @@ class Node(Wrapper):
 
         self.setup_shares += rs
         self.setup_coms += rcoms
-
-
 
         return wrap(None)
 
@@ -301,33 +323,73 @@ class Node(Wrapper):
         # If no setup randomness available
         # then generate more.
         if not self.setup_shares:
+            print("Ran out of setup shares. Generating more.")
+            # reset cache
+            self.cached = {}
+            self.distributed = {}
             self.generate_setup_randomness(None, None)
+
+
 
         # Pick out a setup randomness key
         rs = self.setup_shares.pop(0)
         com = self.setup_coms.pop(0)
 
-        self.rs = rs
-        self.com = com
+        self.rs_temp = rs # TODO: Handle multiple shares
+        self.com_temp = com # TODO: Handle multiple shares
 
         return wrap((rs, com))
 
 
     def handle_share_response(self, request, context):
 
-        srzu = unwrap(request)
+        srzu, i = unwrap(request)
         s, r = srzu
-        share, com = dpss.setup_fresh_parties(self.pk, s, r, self.rs, self.com)
+        share, com = dpss.setup_fresh_parties(self.pk, s, r, self.rs_temp, self.com_temp)
 
-        self.share = share
-        self.com = com
+        self.shares += [share] 
+        self.commitments += [com]
+
+        j = len(self.shares) - 1 # Identifier for the secret just added
+
+        # Point secret to desired app
+        if i not in self.app_to_secret:
+            self.app_to_secret[i] = set()
+
+        self.app_to_secret[i].update([j])
+        
 
         return wrap(None)
 
-    # TODO This should be polled from a trusted party such as the bulletin board
+    # This should only be polled from a trusted party such as the bulletin board
     def set_application(self, request, context):
-        self.application = unwrap(request)
+
+        app, i = unwrap(request)
+
+        self.applications[i] = app
+        
+        #self.applications += [unwrap(request)] # Handling multiple applications
+        
+        #return wrap(len(self.applications) - 1) # Return index of application
         return wrap(None)
+
+    # This should only be polled from a trusted third party such as the bulletin board
+    def add_application_secrets(self, request, context):
+
+        i, indices = unwrap(request)
+
+        # Point secret to desired app
+        if i not in self.app_to_secret:
+            self.app_to_secret[i] = set()
+
+        self.app_to_secret[i].update(indices)
+
+
+        return wrap(None)
+
+
+
+    
 
     ''' Refresh '''
 
@@ -340,14 +402,31 @@ class Node(Wrapper):
     @cache
     def release_share(self, request, context):
 
-        # Refresh Randomness
-        rs = self.refresh_shares.pop(0)
-        rcom = self.old_refresh_coms.pop(0)
-        self.rcom = rcom
+        shares = []
+        while self.shares:
 
-        share, com = dpss.refresh_preprocessing(self.share, self.com, rs, rcom)
+            if not self.refresh_shares:
+                print('Ran out of refresh shares. Generating more.')
+                # reset cache
+                self.cached = {}
+                self.distributed = {}
+                self.generate_refresh_randomness(None, None)
 
-        return share
+            share = self.shares.pop(0)
+            com = self.commitments.pop(0)
+
+            # Refresh Randomness
+            rs = self.refresh_shares.pop(0)
+            rcom = self.old_refresh_coms.pop(0)
+
+            self.tcoms += [com] # temporary commitment storage for king
+            self.rcoms += [rcom]
+
+            share, com = dpss.refresh_preprocessing(share, com, rs, rcom) # TODO make multiple shares
+
+            shares += [share]
+
+        return shares
 
 
     @cache
@@ -356,35 +435,65 @@ class Node(Wrapper):
         request_shares = [n.release_share.future(wrap(None)) for n in self.old_nodes]
         shares = [unwrap(s.result()) for s in request_shares]
 
-        kcom = self.com + self.rcom
-        kpi = dpss.refresh_king(self.pk, shares, kcom)
 
-        return (kpi, kcom)
+        kpis = []
+        kcoms = []
+        for i in range(len(shares[0])):
+
+            com = self.tcoms[i]
+            rcom = self.rcoms[i]
+
+            kcom = com + rcom
+
+            ss = [share[i] for share in shares]
+            kpi = dpss.refresh_king(self.pk, ss, kcom)
+
+            kpis += [kpi]
+            kcoms += [kcom]
+
+        return (kpis, kcoms)
+
+
 
 
     def refresh(self, request, context):
 
         king = self.get_king()
 
-        # If no setup randomness available
-        # then generate more.
-        if not self.refresh_shares:
-            self.generate_refresh_shares()
-
         # Get material from king
         king = self.get_king()
-        ks, kcom = unwrap(king.refresh_reconstruct(wrap(None)))
+        kss, kcoms = unwrap(king.refresh_reconstruct(wrap(None)))
 
-        # Retrieve refresh randomness from storage.
+        new_shares = []
+        new_coms = []
 
-        rs = self.refresh_shares.pop(0) 
-        rcom = self.new_refresh_coms.pop(0)
+        for i in range(len(kss)):
 
-        new_share, new_com = dpss.refresh_postprocessing(self.pk, ks, kcom, rs, rcom)
+            # If no setup randomness available
+            # then generate more.
+            if not self.refresh_shares:
+                print('Ran out of refresh shares. Generating more. (In refresh)')
+                # reset cache
+                self.cached = {}
+                self.distributed = {}
+                # Generate new batch of refresh shares
+                self.generate_refresh_randomness(None, None)
+
+            # Retrieve refresh randomness from storage.
+            rs = self.refresh_shares.pop(0) 
+            rcom = self.new_refresh_coms.pop(0)
+
+            new_share, new_com = dpss.refresh_postprocessing(self.pk, kss[i], kcoms[i], rs, rcom)
+
+            new_shares += [new_share]
+            new_coms += [new_com]
 
         # Store new secret
-        self.share = new_share
-        self.com = new_com
+        self.shares += new_shares
+        self.commitments += new_coms
+
+
+
 
         return wrap(None)
 
@@ -392,27 +501,32 @@ class Node(Wrapper):
 
     def update_application_state(self, request, context=None):
 
-        state, pi = unwrap(request)
-        self.application.handle_update(state, pi)
+        state, pi, i = unwrap(request)
+
+        # Let application decide if state is allowed to be updated
+        self.applications[i].handle_update(pi, state)
+
+        return wrap(None)
 
 
     def get_share(self, request, context=None):
 
-        pi = unwrap(request)
+        pi, i = unwrap(request)
 
-        if not self.application.handle_release(pi):
+        if not self.applications[i].handle_release(pi):
+            print('Application did not accept release')
             return wrap(None)
         
-        if not self.share:
-            raise Exception('Node ' + str(self.u) + ' does not have requested share')
+        if i not in self.app_to_secret:
+            raise Exception('Requested application does not have any secrets: ' + str(i))
         else:
-            return wrap((self.share, self.com))
+            secret_indices = self.app_to_secret[i]
+            res = []
+            for j in secret_indices:
+                res += [(self.shares[j], self.commitments[j])]
+            #return wrap((self.shares[i], self.commitments[i]))
+            return wrap(res)
 
-
-    def ping(self, request, context):
-        print(type(request))
-        a = unwrap(request)
-        return wrap(sampleGF())
 
 def serve(addr, nid, config, loop=True):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=2048))

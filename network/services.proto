@@ -20,9 +20,7 @@ service Node {
   rpc refresh(Pickle) returns (Pickle) {}
   rpc update_application_state(Pickle) returns (Pickle) {}
   rpc set_application(Pickle) returns (Pickle) {}
-
-  rpc ping(Pickle) returns (Pickle) {}
-
+  rpc add_application_secrets(Pickle) returns (Pickle) {}
 }
 
 message Pickle {

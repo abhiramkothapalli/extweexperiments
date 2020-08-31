@@ -11,7 +11,7 @@ import params
 import os
 import timeit
 from serializer import wrap, unwrap
-from application import Schnorr, TimeLock, DeadMan
+from application import Schnorr, TimeLock, DeadMan, FairExchange
 
 import grpc
 
@@ -87,12 +87,12 @@ def initalize_nodes(n, pk, old_nodes, new_nodes):
 
 
 @timer
-def client_share(client, app, secret):
-    client.share(app, secret)
+def client_share(client, secret, i):
+    client.share(secret, i)
 
 @timer
-def client_reconstruct(client, app, witness):
-    client.reconstruct(app, witness)
+def client_reconstruct(client, app, witness, i):
+    client.reconstruct(app, witness, i)
 
 @timer
 def ping(node):
@@ -103,6 +103,18 @@ def initalize_application(application):
     app = application()
     witness = app.create_statement()
     return app, witness
+
+
+def set_application(app, i):
+
+    future_results = [node.set_application.future(wrap((app, i))) for node in old_nodes + new_nodes]
+    [r.result() for r in future_results]
+
+def add_application_secrets(i, indices):
+
+    future_results = [node.add_application_secrets.future(wrap((i, indices))) for node in old_nodes + new_nodes]
+    [r.result() for r in future_results]
+    
 
 def run_experiment(n, t, pk, old_nodes, new_nodes, application):
 
@@ -117,9 +129,38 @@ def run_experiment(n, t, pk, old_nodes, new_nodes, application):
 
     ''' Share '''
 
+    num = 2
+
     client = create_client(n, pk, params.old_addrs, params.new_addrs)
-    secret = sampleGF()
-    client_share_time = client_share(client, app, secret)
+
+    # Set single application
+    set_application(app, 0)
+
+    # Set i applications
+    # Create several secrets
+    secrets = []
+    for i in range(num):
+        
+        secret = sampleGF()
+        secrets += [secret]
+        client_share_time = client_share(client, secret, i)
+
+        add_application_secrets(0, [i])
+
+
+    if application == FairExchange:
+        a, b = witness
+
+        Alice = create_client(n, pk, params.old_addrs, params.new_addrs)
+        Bob = create_client(n, pk, params.old_addrs, params.new_addrs)
+
+        # Alice unlocks
+        Alice.update(app, None, (a, 'a'), 0)
+
+        # Bob unlocks
+        Bob.update(app, None, (b, 'b'), 0)
+
+        
 
 
     ''' Refresh '''
@@ -130,10 +171,18 @@ def run_experiment(n, t, pk, old_nodes, new_nodes, application):
 
     if application == TimeLock or application == DeadMan:
         print('Sleeping for TimeLock/DeadMan')
-        time.sleep(60)
+        time.sleep(2)
 
     new_client = create_client(n, pk, params.old_addrs, params.new_addrs)
-    client_reconstruct_time = client_reconstruct(new_client, app, witness)
+
+
+    # Retrieve all the secrets
+    if application != FairExchange:
+        client_reconstruct_time = client_reconstruct(new_client, app, witness, 0)
+    else:
+        # New client needs either Alice or Bob's private key
+        client_reconstruct_time = client_reconstruct(new_client, app, (witness[0], 'a'), 0)
+
 
     return (setup_randomness_time, refresh_randomness_time, client_share_time, refresh_time, client_reconstruct_time)
 
@@ -143,7 +192,7 @@ if __name__ == '__main__':
     T = params.T
     R = params.R
     PK = params.PK
-    applications = [Schnorr]
+    applications = params.applications
 
     resultsfile = params.resultsfile
 

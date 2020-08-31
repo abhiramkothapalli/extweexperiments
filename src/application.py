@@ -90,6 +90,75 @@ class Schnorr(Application):
     def handle_release(self, pi):
         return self.verify(pi)
 
+class FairExchange(Application):
+
+    ''' State '''
+    SchnorrA = None
+    SchnorrB = None
+
+    A_release = False
+    B_release = False
+
+
+    ''' Initalize '''
+
+    def create_statement(self, SchnorrA=None, SchnorrB=None):
+
+
+
+        # In practice only public keys are provided as input,
+        # For testing we allow public and private keys to be created
+        # inside the application
+
+        if not SchnorrA:
+            self.SchnorrA = Schnorr()
+            a = self.SchnorrA.create_statement()
+
+        if not SchnorrB:
+            self.SchnorrB = Schnorr()
+            b = self.SchnorrB.create_statement()
+
+
+        # Return the private keys if they were generated inside the application
+        return (a, b)
+
+    ''' Application Wrappers '''
+
+    def handle_update(self, signature, state=None):
+
+        if self.SchnorrA.verify(signature):
+            self.A_release = True
+
+        if self.SchnorrB.verify(signature):
+            self.B_release = True
+
+        
+        return True
+
+
+    def request_update(self, w):
+
+        witness, identity = w
+
+        # Given a witness create a signature
+        if identity == 'a':
+            return self.SchnorrA.prove(witness)
+        elif identity == 'b':
+            return self.SchnorrB.prove(witness)
+    
+
+    def request_release(self, w):
+
+        # Same protocol as request_update
+        return self.request_update(w)
+
+    def handle_release(self, sig):
+
+        return self.A_release and self.B_release and (self.SchnorrA.verify(sig) or self.SchnorrB.verify(sig))
+
+        
+    
+
 from datetime import datetime, timedelta
 import pytz
     
@@ -106,7 +175,7 @@ class TimeLock(Application):
 
         if not delta:
             # Release secret one minute into the future
-            delta = timedelta(seconds=60)
+            delta = timedelta(seconds=1)
 
         # Set the statement to a time in the future
         self.statement = datetime.now() + delta
@@ -150,7 +219,7 @@ class DeadMan(Application):
 
         if not timeout:
             # Create a default timeout of 2 minutes
-            timeout = timedelta(seconds=60)
+            timeout = timedelta(seconds=1)
 
         # Store timeout
         self.timeout = timeout
