@@ -52,6 +52,8 @@ for n in range(0, M):
     # Set node site
     node.Site("Site" + str(n % SITES + 1))
 
+    node.hardware_type = 'm510'
+
     # Node networking
     iface = node.addInterface("eth1")
     iface.addAddress(pg.IPv4Address("192.168.1." + str(n + 1), "255.255.255.0"))
@@ -64,6 +66,8 @@ for n in range(0, M):
 
 # Create bulletin
 bulletin = request.RawPC(BHOST)
+
+bulletin.hardware_type = 'm510'
 
 # Bulletin script direectories
 bulletin_startup = "/local/repository/bulletin.sh"
