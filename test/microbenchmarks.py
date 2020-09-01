@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
     f.close()
 
-        filename = 'kzg_results.txt'
+    filename = 'kzg_results.txt'
 
 
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     
     f = open(filename, 'w+')
 
-    for d in [10, 100]:
+    for d in [16, 32, 64]:
 
         runtimes = benchmark_kzg(d)
 
