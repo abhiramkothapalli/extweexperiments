@@ -99,6 +99,10 @@ def ping(node):
     a = sampleGF()
     result = unwrap(node.ping(wrap(a)).result())
 
+@timer
+def client_update_fairexchange(client, app, witness, identity):
+    client.update(app, None, (witness, identity), 0)
+
 def initalize_application(application):
     app = application()
     witness = app.create_statement()
@@ -147,6 +151,7 @@ def run_experiment(n, t, pk, old_nodes, new_nodes, application):
 
         add_application_secrets(0, [i])
 
+    update_time = 0
 
     if application == FairExchange:
         a, b = witness
@@ -155,10 +160,12 @@ def run_experiment(n, t, pk, old_nodes, new_nodes, application):
         Bob = create_client(n, pk, params.old_addrs, params.new_addrs)
 
         # Alice unlocks
-        Alice.update(app, None, (a, 'a'), 0)
+        update_time += client_update_fairexchange(Alice, app, a, 'a')
+        #Alice.update(app, None, (a, 'a'), 0)
 
         # Bob unlocks
-        Bob.update(app, None, (b, 'b'), 0)
+        #Bob.update(app, None, (b, 'b'), 0)
+        update_time += client_update_fairexchange(Bob, app, b, 'b')
 
         
 
@@ -184,7 +191,7 @@ def run_experiment(n, t, pk, old_nodes, new_nodes, application):
         client_reconstruct_time = client_reconstruct(new_client, app, (witness[0], 'a'), 0)
 
 
-    return (setup_randomness_time, refresh_randomness_time, client_share_time, refresh_time, client_reconstruct_time)
+    return (setup_randomness_time, refresh_randomness_time, client_share_time, refresh_time, client_reconstruct_time, update_time)
 
 if __name__ == '__main__':
 

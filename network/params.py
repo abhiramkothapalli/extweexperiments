@@ -9,7 +9,7 @@ from application import Schnorr, TimeLock, DeadMan, FairExchange
 N = [4, 8, 16, 32, 64] # CONFIGURE
 R = 1 # CONFIGURE
 LOCAL = False # CONFIGURE
-applications = [Schnorr, TimeLock, DeadMan, FairExchange] # CONFIGURE
+applications = [FairExchange] # CONFIGURE
 
 
 T = [int(n / 2) for n in N]
