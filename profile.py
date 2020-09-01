@@ -17,7 +17,7 @@ params = portal.context.bindParameters()
 ''' Network Configuration '''
 
 # Size and naming convention configuration
-N = 64 # CONFIGURE
+N = 2 # CONFIGURE
 M = 2 * N
 SITES = params.SITES
 BHOST = 'bulletin'
