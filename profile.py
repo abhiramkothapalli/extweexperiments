@@ -7,7 +7,6 @@ import geni.rspec.pg as pg
 ''' Parameters '''
 
 # Describe the parameter(s) this profile script can accept.
-#portal.context.defineParameter( "N", "Number of VMs", portal.ParameterType.INTEGER, 4)
 portal.context.defineParameter( "SITES", "Number of Sites", portal.ParameterType.INTEGER, 2)
 
 # Retrieve the values the user specifies during instantiation.
@@ -49,9 +48,6 @@ for n in range(0, M):
     # Add node startup script
     node.addService(pg.Execute(shell="sh", command=str(node_startup) + " " + str(n) + ' ' + str(NPORT) + " >> " + node_output))
 
-    # Set node site
-    #node.Site("Site" + str(n % SITES + 1))
-
     node.hardware_type = 'm510'
 
     # Node networking
@@ -69,15 +65,12 @@ bulletin = request.RawPC(BHOST)
 
 bulletin.hardware_type = 'm510'
 
-# Bulletin script direectories
+# Bulletin script directories
 bulletin_startup = "/local/repository/bulletin.sh"
 bulletin_output = "/local/repository/startup_output.txt"
 
 # Add bulletin startup script
 bulletin.addService(pg.Execute(shell="sh", command=str(bulletin_startup)  + " >> " + bulletin_output))
-
-# Set bulletin site
-#bulletin.Site("Site1")
 
 # Bulletin networking
 iface = bulletin.addInterface("eth1")
@@ -86,8 +79,6 @@ ifaces.append(iface)
 
 
 ''' Networking Setup '''
-
-#request.Link(members=(nodes + [bulletin]))
 
 lan = request.LAN("lan")
 lan.bandwidth=100000

@@ -335,8 +335,8 @@ class Node(Wrapper):
         rs = self.setup_shares.pop(0)
         com = self.setup_coms.pop(0)
 
-        self.rs_temp = rs # TODO: Handle multiple shares
-        self.com_temp = com # TODO: Handle multiple shares
+        self.rs_temp = rs # Simplifying assumption
+        self.com_temp = com # Simplifying assumption
 
         return wrap((rs, com))
 
@@ -368,9 +368,6 @@ class Node(Wrapper):
 
         self.applications[i] = app
         
-        #self.applications += [unwrap(request)] # Handling multiple applications
-        
-        #return wrap(len(self.applications) - 1) # Return index of application
         return wrap(None)
 
     # This should only be polled from a trusted third party such as the bulletin board
@@ -422,7 +419,8 @@ class Node(Wrapper):
             self.tcoms += [com] # temporary commitment storage for king
             self.rcoms += [rcom]
 
-            share, com = dpss.refresh_preprocessing(share, com, rs, rcom) # TODO make multiple shares
+            # Simplifying assumption: in practice multiple shares
+            share, com = dpss.refresh_preprocessing(share, com, rs, rcom) 
 
             shares += [share]
 
@@ -524,7 +522,6 @@ class Node(Wrapper):
             res = []
             for j in secret_indices:
                 res += [(self.shares[j], self.commitments[j])]
-            #return wrap((self.shares[i], self.commitments[i]))
             return wrap(res)
 
 

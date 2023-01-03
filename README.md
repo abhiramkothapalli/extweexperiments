@@ -13,3 +13,13 @@ sudo python3 -m pip install numpy
 
 ```
 
+
+## Running
+
+```
+cd extweexperiments/
+make
+cd test
+python3 benchmarking.py
+```
+

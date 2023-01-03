@@ -89,7 +89,7 @@ if __name__ == '__main__':
     pk, sk = setup(t)
 
     # Create random polynomial
-    # TODO: does not work for lower degree poly
+    # NOTE: does not work for lower degree poly
     f = samplePoly(t + 1)
 
     # Commit to polynomial

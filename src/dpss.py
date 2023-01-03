@@ -14,7 +14,6 @@ def gen_vandermonde(n, t):
 
     m = n - t
     la = [GF(a) for a in range(2, m + 2)]
-    #V = [[a ** i in range(0, n)] for a in la]
 
     V = []
 
@@ -46,7 +45,7 @@ def gen_rand(pk, s):
 
 def challenge(elems):
 
-    # TODO: Fill in correct challenge method.
+    # Simplifying assumption: Challenge is trivially sampled
     pts = eval_points(len(elems))
     C = interpolate(pts, [elems])[0]
 
@@ -152,11 +151,8 @@ def refresh_preprocessing(ss, scom, sr, rcom):
 
 def refresh_king(pk, ss, com):
 
-    # Note: com = scom + rcom
-
     kvss = pk['vss']
     
-    # TODO: maybe can calculate witness the same way in linear.
     u, v, Pu, Pv = vss.reconstruct_full(kvss, (ss, com))
 
     return vss.create_share(kvss, Pu, GF(0), Pv)
@@ -292,7 +288,7 @@ if __name__ == '__main__':
 
     # Verify the setup distribution
     gsss = [setup_dist(pk) for i in range(0, n)]
-    c = sampleGF() # TODO: test this correctly
+    c = sampleGF() # Simplifying assumption about challenge sampling
     nss = []
     ncoms = []
     for i in range(0, n):
@@ -333,28 +329,11 @@ if __name__ == '__main__':
         rss += [rs]
         rcomss += [rcoms]
 
-    
-    # # Verify commitments are valid.
-    # # Pick one set of commitments.
-    # rcoms = rcomss[0]
-    # for i in range(0, n):
-    #     for j in range(0, n - t):
-    #         e = rss[i][j]
-    #         pi = e.i, e.u, e.v, e.w
-    #         assert verify_eval(pk[1], rcoms[j], pi)
-
-
     # Pick out a single session key
     k = 0
     rs = [rs[k] for rs in rss]
     com = rcomss[0][k]
     ek = (rs, com)
-
-    # # Check session key
-    # for i in range(0, n):
-    #     e = rs[i]
-    #     pi = e.i, e.u, e.v, e.w
-    #     assert verify_eval(pk[1], com, pi)
 
 
     ''' Create Refresh Key '''
@@ -390,24 +369,6 @@ if __name__ == '__main__':
         nrcomtss += [rcomst]
 
 
-    # # Verify old shares are valid.
-    # # Pick one set of commitments.
-    # orcoms = orcomss[0]
-    # for i in range(0, n):
-    #     for j in range(0, n - t):
-    #         e = orss[i][j]
-    #         pi = e.i, e.u, e.v, e.w
-    #         assert verify_eval(pk[1], orcoms[j], pi)
-
-    # # Verify new shares are valid.
-    # # Pick one set of commitments.
-    # nrcoms = nrcomss[0]
-    # for i in range(0, n):
-    #     for j in range(0, n - t):
-    #         e = nrss[i][j]
-    #         pi = e.i, e.u, e.v, e.w
-    #         assert verify_eval(pk[1], nrcoms[j], pi)
-
     # Pick out single refresh key
     k = 0
     ors = [rs[k] for rs in orss]
@@ -415,21 +376,8 @@ if __name__ == '__main__':
     nrs = [rs[k] for rs in nrss]
     ncomr = nrcomss[0][k]
 
-    # # Check old refresh key
-    # for i in range(0, n):
-    #     e = ors[i]
-    #     pi = e.i, e.u, e.v, e.w
-    #     assert verify_eval(pk[1], ocom, pi)
-
-    # # Check new refresh key
-    # for i in range(0, n):
-    #     e = nrs[i]
-    #     pi = e.i, e.u, e.v, e.w
-    #     assert verify_eval(pk[1], ncomr, pi)
-
 
     # Check consistencies between old and new refresh keys.
-    #abc, ghi, V = pk
     abc = pk['vss']
     ghi = pk['V']
     ro, so, Pro, Pso = vss.reconstruct_full(abc, (ors, ocom))
@@ -537,18 +485,6 @@ if __name__ == '__main__':
         ss += [pi]
         coms += [c]
 
-    # # Verify shares
-    # com = coms[0]
-    # for s in ss:
-    #     pi = s.i, s.u, s.v, s.w
-    #     assert verify_eval(pk[1], com, pi)
-
-    
-    # # Check reconstruction before refresh
-    # com = coms[0]
-    # s = reconstruct(pk, (ss, com))
-    # assert s == secret
-
 
 
     ''' Refresh '''
@@ -566,10 +502,6 @@ if __name__ == '__main__':
     kpi = refresh_king(pk, pksss, pkcoms[0])
     kcom = pkcoms[0]
 
-    # # Check kings result.
-    # pi = kpi.i, kpi.u, kpi.v, kpi.w
-    # assert verify_eval(pk[1], kcom, pi)
-
     # New parties postprocess
     scom = coms[0]
     nss = []
@@ -578,13 +510,6 @@ if __name__ == '__main__':
         ns, ncom = refresh_postprocessing(pk, kpi, kcom, nrs[i], ncomr)
         nss += [ns]
         ncoms += [ncom]
-
-    # # Check shares are valid
-    # ncom = ncoms[0]
-    # for i in range(0, n):
-    #     e = nss[i]
-    #     pi = e.i, e.u, e.v, e.w
-    #     assert verify_eval(pk[1], ncom, pi)
 
         
     ''' Reconstruct '''

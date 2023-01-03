@@ -4,10 +4,8 @@
 
 import sys
 sys.path.append('../src/')
-
 import time
 
-#import dpss
 from dpss import *
 import vss
 import kzg
@@ -46,7 +44,6 @@ def timer(func, runtimes, key):
 
 def run_dpss(n, t):
 
-
     runtimes = {}
     T = lambda func, key: timer(func, runtimes, key)
 
@@ -65,7 +62,7 @@ def run_dpss(n, t):
 
     # Verify the setup distribution
     gsss = [T(setup_dist, 'setup_distribution_verification_1')(pk) for i in range(0, n)]
-    c = sampleGF() # TODO: test this correctly
+    c = sampleGF() # Simplifying assumption for experiments
     nss = []
     ncoms = []
     for i in range(0, n):
